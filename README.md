@@ -67,4 +67,5 @@ To create the necessary migrations run:
    http://127.0.0.1:8000/load_data/load_soil
    http://127.0.0.1:8000/load_data/load_buildings
    http://127.0.0.1:8000/load_data/load_vunerable_locations
+   http://127.0.0.1:8000/load_data/load_weather_data
    ```

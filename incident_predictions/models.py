@@ -124,3 +124,34 @@ class VunerableLocationsModel(models.Model):
     region = models.CharField(max_length=150)
     name = models.CharField(max_length=255)
     geometry = models.PointField()
+
+
+class WeatherDataModel(models.Model):
+
+    class Meta:
+        db_table = "incident_predictions_weather_data"
+
+    dt_iso = models.DateTimeField()
+    temp = models.FloatField()
+    dew_point = models.FloatField()
+    feels_like = models.FloatField()
+    temp_min = models.FloatField()
+    temp_max = models.FloatField()
+    pressure = models.IntegerField()
+    humidity = models.IntegerField()
+    wind_speed = models.IntegerField()
+    wind_deg = models.IntegerField()
+    wind_gust = models.FloatField()
+    rain_1h = models.FloatField()
+    rain_3h = models.FloatField()
+    snow_1h = models.FloatField()
+    weather_main = models.CharField(max_length=150)
+
+
+class WeatherMainPriority(models.Model):
+
+    class Meta:
+        db_table = "incident_predictions_weather_main_priority"
+
+    weather_main = models.CharField(max_length=50, unique=True)
+    weather_priority = models.IntegerField()
