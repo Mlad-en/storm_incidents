@@ -15,6 +15,7 @@ lightgbm = "*"
 joblib = "*"
 openpyxl = "*"
 shapely = "*"
+overpy = "*"
 
 [dev-packages]
 mypy = "*"

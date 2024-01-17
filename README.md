@@ -61,7 +61,10 @@ To create the necessary migrations run:
    2. Call the following endpoints
    ```
    http://127.0.0.1:8000/load_data/high_ground_water
+   http://127.0.0.1:8000/load_data/tree_data
    http://127.0.0.1:8000/load_data/load_grid
    http://127.0.0.1:8000/load_data/load_incidents
-   http://127.0.0.1:8000/load_data/tree_data
+   http://127.0.0.1:8000/load_data/load_soil
+   http://127.0.0.1:8000/load_data/load_buildings
+   http://127.0.0.1:8000/load_data/load_vunerable_locations
    ```

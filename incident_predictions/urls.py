@@ -25,4 +25,6 @@ urlpatterns = [
     path("load_data/load_grid", load_grid, name="load_grid"),
     path("load_data/load_incidents", load_incidents, name="load_incidents"),
     path("load_data/load_soil", load_soil, name="load_soil"),
+    path("load_data/load_buildings", load_buildings, name="load_buildings"),
+    path("load_data/load_vunerable_locations", load_vunerable_locations, name="load_vunerable_locations"),
 ]

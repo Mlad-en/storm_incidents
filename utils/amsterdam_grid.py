@@ -1,11 +1,10 @@
 from pathlib import Path
 from os.path import exists
-from typing import Annotated
 
 import geopandas as gpd
-from django.contrib.gis.geos import GEOSGeometry, Polygon
-from pydantic import BeforeValidator, BaseModel
-from shapely.wkt import dumps as shapely_dumps
+from pydantic import BaseModel
+
+from utils.geometry_types import PolygonField
 
 
 class GridDutchColumns:
@@ -50,18 +49,9 @@ class AmsterdamGrid:
         return self
 
 
-def convert_to_django_multipolygon(geom_obj):
-    shapely_polygon = shapely_dumps(geom_obj)
-    geometry = GEOSGeometry(shapely_polygon)
-    return geometry
-
-
-GeometryField = Annotated[Polygon, BeforeValidator(convert_to_django_multipolygon)]
-
-
 class GridValidationModel(BaseModel):
     class Config:
         arbitrary_types_allowed = True
 
     grid_id: str
-    geometry: GeometryField
+    geometry: PolygonField

@@ -16,8 +16,8 @@ create view underwater_pct_view AS
             ipa.grid_id,
             ST_Area(ST_Intersection(iph.geometry, ipa.geometry)) / ST_Area(ipa.geometry) AS area_covered
           FROM
-            incident_predictions_highgroundwatermodel iph
-            JOIN incident_predictions_amsterdamgridmodel ipa ON ST_Intersects(iph.geometry, ipa.geometry)
+            incident_predictions_high_groundwater iph
+            JOIN incident_predictions_amsterdam_grid ipa ON ST_Intersects(iph.geometry, ipa.geometry)
         ) AS area_covered
     GROUP BY grid_id, drainage
     ) AS data

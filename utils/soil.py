@@ -8,6 +8,8 @@ from shapely.wkt import dumps as shapely_dumps
 from utils import resources
 import geopandas as gpd
 
+from utils.geometry_types import MultiPolygonField
+
 
 class SoilDutchColumns:
     GEBIEDNUMMER = "Gebiednummer"
@@ -94,17 +96,6 @@ class SourceSoil:
         dataframe = dataframe.astype(SoilColumns.get_column_types())
         self.dataframe = dataframe
         return self
-
-
-def convert_to_django_multipolygon(geom_obj):
-    shapely_polygon = shapely_dumps(geom_obj)
-    geometry = GEOSGeometry(shapely_polygon)
-    if geometry.geom_type != 'MultiPolygon':
-        geometry = MultiPolygon([geometry])
-    return geometry
-
-
-MultiPolygonField = Annotated[MultiPolygon, BeforeValidator(convert_to_django_multipolygon)]
 
 
 class SoilValidationModel(BaseModel):

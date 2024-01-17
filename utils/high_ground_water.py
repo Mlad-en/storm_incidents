@@ -1,11 +1,8 @@
-from typing import Annotated
-
 import geopandas as gpd
-from pydantic import BaseModel, BeforeValidator
-from django.contrib.gis.geos import GEOSGeometry, MultiPolygon
-from shapely.wkt import dumps as shapely_dumps
+from pydantic import BaseModel
 
 from utils import resources
+from utils.geometry_types import MultiPolygonField
 
 
 class HighWaterDutchColumns:
@@ -77,21 +74,10 @@ class HighGroundWater:
         return self
 
 
-def convert_to_django_multipolygon(geom_obj):
-    shapely_polygon = shapely_dumps(geom_obj)
-    geometry = GEOSGeometry(shapely_polygon)
-    if not geometry.valid or geometry.geom_type != 'MultiPolygon':
-        geometry = MultiPolygon([geometry])
-    return geometry
-
-
-GeometryField = Annotated[MultiPolygon, BeforeValidator(convert_to_django_multipolygon)]
-
-
 class HighGroundWaterValidationModel(BaseModel):
     class Config:
         arbitrary_types_allowed = True
 
     location: str
     drainage: str
-    geometry: GeometryField
+    geometry: MultiPolygonField

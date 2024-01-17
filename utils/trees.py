@@ -1,14 +1,11 @@
-from typing import Annotated
-
 import numpy as np
 import geopandas as gpd
 import pandas as pd
-from pydantic import BeforeValidator, BaseModel
-from shapely.wkt import dumps as shapely_dumps
-from django.contrib.gis.geos import GEOSGeometry
+from pydantic import BaseModel
 
 
 from utils import resources
+from utils.geometry_types import GeometryField
 
 
 class TreeColumnsDutch:
@@ -226,15 +223,6 @@ class TreesData:
         self.dataframe = dataframe
 
         return self
-
-
-def convert_to_django_geometry(geom_obj):
-    shapely_polygon = shapely_dumps(geom_obj)
-    geometry = GEOSGeometry(shapely_polygon)
-    return geometry
-
-
-GeometryField = Annotated[GEOSGeometry, BeforeValidator(convert_to_django_geometry)]
 
 
 class TreeValidationModel(BaseModel):

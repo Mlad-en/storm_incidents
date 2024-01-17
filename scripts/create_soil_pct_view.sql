@@ -31,8 +31,8 @@ ips.zone,
 ipa.grid_id,
 ST_Area(ST_Intersection(ips.geometry, ipa.geometry)) / ST_Area(ipa.geometry) AS area_covered
 FROM
-incident_predictions_soilmodel ips
-JOIN incident_predictions_amsterdamgridmodel ipa ON ST_Intersects(ips.geometry, ipa.geometry)
+incident_predictions_soil ips
+JOIN incident_predictions_amsterdam_grid ipa ON ST_Intersects(ips.geometry, ipa.geometry)
 )  AS area_covered
 GROUP BY grid_id, zone
 ) as ac

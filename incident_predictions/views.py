@@ -1,7 +1,3 @@
-from pathlib import Path
-
-import pandas as pd
-from django.db import transaction
 from django.shortcuts import HttpResponse
 
 from incident_predictions.models import (
@@ -9,14 +5,19 @@ from incident_predictions.models import (
     TreesModel,
     AmsterdamGridModel,
     StormDamageModel,
-    SoilModel
+    SoilModel,
+    BuildingsModel,
+    VunerableLocationsModel
 )
 from utils.high_ground_water import HighGroundWater, HighGroundWaterValidationModel
+from utils.load_data import load_data_into_db
 from utils.trees import TreesData, TreeColumnsEnglish, TreeValidationModel
 from utils.predict_tree_age import generate_predictions
 from utils.amsterdam_grid import AmsterdamGrid, GridValidationModel
-from utils.storm_incidents import StormIncidents, IncidentValidationModel
+from utils.storm_incidents import StormIncidents, StormDamageValidationModel
 from utils.soil import SourceSoil, SoilValidationModel
+from utils.buildings import SourceHistoricBuilding, BuildingsValidationModel
+from utils.vunerable_locations import SourceVunerableLocations, LocationsValidationModel
 
 
 import logging
@@ -31,14 +32,7 @@ def load_high_ground_water(request):
         logger.info("Data Loaded")
 
         HighGroundWaterModel.objects.all().delete()
-
-        for record in data.to_dict("records"):
-            high_groundwater_record = HighGroundWaterValidationModel(**record)
-
-            HighGroundWaterModel.objects.update_or_create(**high_groundwater_record.model_dump())
-
-            logger.info("Record loaded successfully.")
-
+        load_data_into_db(data, HighGroundWaterValidationModel, HighGroundWaterModel, logger)
         return HttpResponse("Success")
 
 
@@ -51,16 +45,9 @@ def load_tree_data(request):
         logger.info("Predicting Data")
         data = generate_predictions(data)
         logger.info("Predicting Finished")
-
         logger.info("Beginning Data Load")
         TreesModel.objects.all().delete()
-        with transaction.atomic():
-            for record in data.to_dict("records"):
-                tree_record = TreeValidationModel(**record)
-                TreesModel.objects.create(**tree_record.model_dump())
-
-                logger.info("Record loaded successfully.")
-
+        load_data_into_db(data, TreeValidationModel, TreesModel, logger)
         return HttpResponse("Success")
 
 
@@ -68,15 +55,8 @@ def load_grid(request):
     if request.method == 'GET':  # TODO: Update either method or shift into the admin page
         logger.info("Method Started")
         data = AmsterdamGrid().clean_data().dataframe
-
         AmsterdamGridModel.objects.all().delete()
-        with transaction.atomic():
-            for record in data.to_dict("records"):
-                grid_record = GridValidationModel(**record)
-                AmsterdamGridModel.objects.update_or_create(**grid_record.model_dump())
-
-                logger.info("Record loaded successfully.")
-
+        load_data_into_db(data, GridValidationModel, AmsterdamGridModel, logger)
         return HttpResponse("Success")
 
 
@@ -86,14 +66,8 @@ def load_incidents(request):
         logger.info("Method Started")
         data = StormIncidents().clean_data().dataframe
         logger.info("Data Loaded")
-
         StormDamageModel.objects.all().delete()
-
-        with transaction.atomic():
-            for record in data.to_dict("records"):
-                incident_record = IncidentValidationModel(**record)
-                StormDamageModel.objects.create(**incident_record.model_dump())
-                logger.info("Record loaded successfully.")
+        load_data_into_db(data, StormDamageValidationModel, StormDamageModel, logger)
         return HttpResponse("Success")
 
 
@@ -105,11 +79,30 @@ def load_soil(request):
         logger.info("Data Loaded")
 
         SoilModel.objects.all().delete()
+        load_data_into_db(data, SoilValidationModel, SoilModel, logger)
+        return HttpResponse("Success")
 
-        with transaction.atomic():
-            for record in data.to_dict("records"):
-                soil_record = SoilValidationModel(**record)
-                SoilModel.objects.create(**soil_record.model_dump())
-                logger.info("Record loaded successfully.")
+
+def load_buildings(request):
+
+    if request.method == 'GET':  # TODO: Update either method or shift into the admin page
+        logger.info("Method Started")
+        data = SourceHistoricBuilding().clean_data().dataframe
+        logger.info("Data Loaded")
+        BuildingsModel.objects.all().delete()
+        load_data_into_db(data, BuildingsValidationModel, BuildingsModel, logger)
+
+        return HttpResponse("Success")
+
+
+def load_vunerable_locations(request):
+
+    if request.method == 'GET':  # TODO: Update either method or shift into the admin page
+        logger.info("Method Started")
+        data = SourceVunerableLocations().clean_data().dataframe
+        logger.info("Data Loaded")
+        VunerableLocationsModel.objects.all().delete()
+        load_data_into_db(data, LocationsValidationModel, VunerableLocationsModel, logger)
+
         return HttpResponse("Success")
 

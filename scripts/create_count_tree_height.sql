@@ -8,7 +8,7 @@ COUNT(CASE WHEN tree_height = 'HEIGHT_15_TO_18M' THEN 1 ELSE 0 END) AS count_15_
 COUNT(CASE WHEN tree_height = 'HEIGHT_18_TO_24M' THEN 1 ELSE 0 END) AS count_18_to_24,
 COUNT(CASE WHEN tree_height = 'HEIGHT_OVER_24M' THEN 1 ELSE 0 END) AS count_over_24,
 COUNT(CASE WHEN tree_height = 'HEIGHT_UNKNOWN' THEN 1 ELSE 0 END) AS count_unknown
-from incident_predictions_treesmodel ipt
-JOIN incident_predictions_amsterdamgridmodel ipa
+from incident_predictions_trees ipt
+JOIN incident_predictions_amsterdam_grid ipa
 ON ST_Contains(ipa.geometry, ipt.geometry)
 group by ipa.grid_id;

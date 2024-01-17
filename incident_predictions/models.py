@@ -1,12 +1,10 @@
 from django.contrib.gis.db import models
 
 
-class Buildings(models.Model):
-    CONSTRUCTION_YEAR = models.IntegerField()
-    geometry = models.PolygonField()
-
-
 class HighGroundWaterModel(models.Model):
+
+    class Meta:
+        db_table = "incident_predictions_high_groundwater"
 
     DRAINAGE_CHOICES = [
         ('DRAIN_POSSIBLE', 'DRAIN_POSSIBLE'),
@@ -19,6 +17,9 @@ class HighGroundWaterModel(models.Model):
 
 
 class TreesModel(models.Model):
+
+    class Meta:
+        db_table = "incident_predictions_trees"
 
     TREE_HEIGHT_CHOICES = [
         ('HEIGHT_UNKNOWN', 'HEIGHT_UNKNOWN'),
@@ -60,11 +61,17 @@ class TreesModel(models.Model):
 
 class AmsterdamGridModel(models.Model):
 
+    class Meta:
+        db_table = "incident_predictions_amsterdam_grid"
+
     grid_id = models.CharField(max_length=255, null=False)
     geometry = models.PolygonField()
 
 
 class StormDamageModel(models.Model):
+
+    class Meta:
+        db_table = "incident_predictions_storm_damage"
 
     incident_id = models.IntegerField()
     date = models.DateField()
@@ -80,6 +87,9 @@ class StormDamageModel(models.Model):
 
 class SoilModel(models.Model):
 
+    class Meta:
+        db_table = "incident_predictions_soil"
+
     area_number = models.IntegerField()
     location = models.CharField(max_length=255)
     zone = models.CharField(max_length=255)
@@ -94,3 +104,23 @@ class SoilModel(models.Model):
     statistical_key_numbers = models.CharField(max_length=255)
     statistical_key_numbers_road = models.CharField(max_length=255)
     geometry = models.MultiPolygonField()
+
+
+class BuildingsModel(models.Model):
+
+    class Meta:
+        db_table = "incident_predictions_buildings"
+
+    construction_year = models.IntegerField()
+    geometry = models.MultiPolygonField()
+
+
+class VunerableLocationsModel(models.Model):
+
+    class Meta:
+        db_table = "incident_predictions_vunerable_locations"
+
+    type = models.CharField(max_length=100)
+    region = models.CharField(max_length=150)
+    name = models.CharField(max_length=255)
+    geometry = models.PointField()

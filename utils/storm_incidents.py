@@ -11,6 +11,8 @@ from shapely.wkt import dumps as shapely_dumps
 from pydantic import BeforeValidator, BaseModel
 from shapely import Point
 
+from utils.geometry_types import GeometryField
+
 
 class StormDamageOriginalColumns:
     INCIDENT_ID = "Incident_ID"
@@ -117,16 +119,7 @@ class StormIncidents:
         return self
 
 
-def convert_to_django_geometry(geom_obj):
-    shapely_polygon = shapely_dumps(geom_obj)
-    geometry = GEOSGeometry(shapely_polygon)
-    return geometry
-
-
-GeometryField = Annotated[GEOSGeometry, BeforeValidator(convert_to_django_geometry)]
-
-
-class IncidentValidationModel(BaseModel):
+class StormDamageValidationModel(BaseModel):
     class Config:
         arbitrary_types_allowed = True
 
