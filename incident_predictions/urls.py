@@ -24,4 +24,5 @@ urlpatterns = [
     path("load_data/tree_data", load_tree_data, name="load_tree_data"),
     path("load_data/load_grid", load_grid, name="load_grid"),
     path("load_data/load_incidents", load_incidents, name="load_incidents"),
+    path("load_data/load_soil", load_soil, name="load_soil"),
 ]

@@ -4,12 +4,19 @@ import pandas as pd
 from django.db import transaction
 from django.shortcuts import HttpResponse
 
-from incident_predictions.models import HighGroundWaterModel, TreesModel, AmsterdamGridModel, StormDamageModel
+from incident_predictions.models import (
+    HighGroundWaterModel,
+    TreesModel,
+    AmsterdamGridModel,
+    StormDamageModel,
+    SoilModel
+)
 from utils.high_ground_water import HighGroundWater, HighGroundWaterValidationModel
 from utils.trees import TreesData, TreeColumnsEnglish, TreeValidationModel
 from utils.predict_tree_age import generate_predictions
 from utils.amsterdam_grid import AmsterdamGrid, GridValidationModel
 from utils.storm_incidents import StormIncidents, IncidentValidationModel
+from utils.soil import SourceSoil, SoilValidationModel
 
 
 import logging
@@ -88,3 +95,21 @@ def load_incidents(request):
                 StormDamageModel.objects.create(**incident_record.model_dump())
                 logger.info("Record loaded successfully.")
         return HttpResponse("Success")
+
+
+def load_soil(request):
+
+    if request.method == 'GET':  # TODO: Update either method or shift into the admin page
+        logger.info("Method Started")
+        data = SourceSoil().clean_data().dataframe
+        logger.info("Data Loaded")
+
+        SoilModel.objects.all().delete()
+
+        with transaction.atomic():
+            for record in data.to_dict("records"):
+                soil_record = SoilValidationModel(**record)
+                SoilModel.objects.create(**soil_record.model_dump())
+                logger.info("Record loaded successfully.")
+        return HttpResponse("Success")
+
