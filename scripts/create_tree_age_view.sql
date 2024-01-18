@@ -1,5 +1,6 @@
 create view tree_age_description as 
 select
+ipa.grid_id,
 count(ipt.tree_age) as tree_count,
 avg(ipt.tree_age) mean_tree_age,
 coalesce(stddev(ipt.tree_age),0) as std_tree_age,

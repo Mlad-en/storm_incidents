@@ -48,9 +48,10 @@ To create the necessary migrations run:
    pipenv run python3 manage.py migrate
    ```
 
-3. **Create the database views** - these will be needed to actually model our data and create the different relations between our tables. To do this:
-   1. open the **scripts folder** in the current project 
-   2. run all the `*.sql` scripts within the database itself to configure your database views.
+3. **Create the database views** - these will be needed to actually model our data and create the different relations between our tables. To do this run the following command:
+   ```bash
+    pipenv run python3 utils/load_data.py
+   ```
 
 4. **Load the necessary data** - In order to load the necessary data into our database tables, do the following:
    1. Run the django server
