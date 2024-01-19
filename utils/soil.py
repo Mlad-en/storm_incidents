@@ -66,23 +66,17 @@ class SoilColumns:
             cls.dutch.STATISTISCHE_KENGETALLEN: cls.eng.statistical_key_numbers,
             cls.dutch.STATISTISCHE_KENGETALLEN_WEG: cls.eng.statistical_key_numbers_road
         }
+    
+    @classmethod
+    def retain_columns(cls):
+        return [cls.eng.location, cls.eng.zone, cls.eng.geometry, cls.eng.soil_function]
 
     @classmethod
     def get_column_types(cls):
         return {
-            cls.eng.area_number: np.uint16,
             cls.eng.location: "category",
             cls.eng.zone: "category",
-            cls.eng.zone_road: "category",
             cls.eng.soil_function: "category",
-            cls.eng.layer_0_05_meters: "category",
-            cls.eng.layer_05_1_meters: "category",
-            cls.eng.layer_1_2_meters: "category",
-            cls.eng.layer_2_meters: "category",
-            cls.eng.explanation: "category",
-            cls.eng.explanation_road: "category",
-            cls.eng.statistical_key_numbers: "category",
-            cls.eng.statistical_key_numbers_road: "category",
         }
 
 
@@ -93,6 +87,12 @@ class SourceSoil:
 
     def clean_data(self):
         dataframe = self.dataframe.rename(columns=SoilColumns.convert_column_names_to_eng())
+        dataframe = dataframe.drop([
+            col 
+            for col 
+            in dataframe.columns 
+            if col not in SoilColumns.retain_columns()
+            ], axis=1)
         dataframe = dataframe.astype(SoilColumns.get_column_types())
         self.dataframe = dataframe
         return self
@@ -102,17 +102,7 @@ class SoilValidationModel(BaseModel):
     class Config:
         arbitrary_types_allowed = True
 
-    area_number: int
     location: str
     zone: str
-    zone_road: str
     soil_function: str
-    layer_0_05_meters: str | None
-    layer_05_1_meters: str | None
-    layer_1_2_meters: str | None
-    layer_2_meters: str | None
-    explanation: str
-    explanation_road: str
-    statistical_key_numbers: str
-    statistical_key_numbers_road: str
     geometry: MultiPolygonField

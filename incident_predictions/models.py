@@ -90,19 +90,9 @@ class SoilModel(models.Model):
     class Meta:
         db_table = "incident_predictions_soil"
 
-    area_number = models.IntegerField()
     location = models.CharField(max_length=255)
     zone = models.CharField(max_length=255)
-    zone_road = models.CharField(max_length=255)
     soil_function = models.CharField(max_length=255)
-    layer_0_05_meters = models.CharField(max_length=255)
-    layer_05_1_meters = models.CharField(max_length=255)
-    layer_1_2_meters = models.CharField(max_length=255)
-    layer_2_meters = models.CharField(max_length=255)
-    explanation = models.CharField(max_length=255)
-    explanation_road = models.CharField(max_length=255)
-    statistical_key_numbers = models.CharField(max_length=255)
-    statistical_key_numbers_road = models.CharField(max_length=255)
     geometry = models.MultiPolygonField()
 
 
