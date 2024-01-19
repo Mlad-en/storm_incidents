@@ -155,3 +155,12 @@ class WeatherMainPriority(models.Model):
 
     weather_main = models.CharField(max_length=50, unique=True)
     weather_priority = models.IntegerField()
+
+
+class TreeTypeTranslations(models.Model):
+
+    class Meta:
+        db_table = "incident_predictions_tree_type_translations"
+
+    dutch_name = models.CharField(max_length=150, unique=True)
+    english_name = models.CharField(max_length=150)
