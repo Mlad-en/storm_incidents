@@ -64,10 +64,8 @@ class StormDamageModelAdmin(admin.ModelAdmin):
 @admin.register(models.SoilModel)
 class SoilModelAdmin(admin.ModelAdmin):
     list_display = (
-        'area_number',
         'location',
         'zone',
-        'zone_road',
         'soil_function'
     )
 
