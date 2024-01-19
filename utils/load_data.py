@@ -1,4 +1,6 @@
 import psycopg2
+from pandas.io import sql as sql_io
+import pandas as pd
 from django.db import transaction
 import os
 from pathlib import Path
@@ -53,5 +55,6 @@ def load_scripts_into_database():
         cursor.close()
 
 
-if __name__ == '__main__':
-    load_scripts_into_database()
+def get_data_from_db(query):
+    connection = get_connection()
+    return sql_io.read_sql_query(query, con=connection)
