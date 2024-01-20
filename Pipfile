@@ -16,6 +16,7 @@ joblib = "*"
 openpyxl = "*"
 shapely = "*"
 overpy = "*"
+imbalanced-learn = "*"
 
 [dev-packages]
 mypy = "*"
