@@ -7,10 +7,12 @@ from sklearn.preprocessing import OrdinalEncoder
 from sklearn.compose import make_column_transformer
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import RandomizedSearchCV
-from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import mean_squared_error, mean_absolute_error
 from sklearn.model_selection import train_test_split
 from sklearn.base import BaseEstimator, TransformerMixin
-import lightgbm as lgb
+from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.preprocessing import FunctionTransformer
+from sklearn.compose import TransformedTargetRegressor
 import joblib
 
 from utils.trees import TreesData, TreeColumnsEnglish
@@ -101,7 +103,13 @@ def get_pipeline():
         (GeometryToLatLonTransformer(), geometry_columns),
         remainder='drop'
     )
-    model = lgb.LGBMRegressor()
+    model = TransformedTargetRegressor(
+        regressor=GradientBoostingRegressor(),
+        func=np.log1p,
+        inverse_func=np.expm1,
+        check_inverse=False
+    )
+
     return Pipeline(
         [
             ("column_transformation", columns_transforms),
@@ -112,11 +120,10 @@ def get_pipeline():
 
 def get_tuning_params():
     return {
-        "model__max_depth": [20, 50, 100, 200],
-        "model__num_leaves": [20, 40, 100, 120],
-        "model__learning_rate": [0.01, 0.05, 0.1, 0.2, 0.3],
-        "model__n_estimators": [100, 500, 700, 1000],
-        "model__colsample_bytree": [0.3, 0.5, 0.7, 1]
+        "model__regressor__max_depth": [3, 9, 15, 20, 30],
+        "model__regressor__learning_rate": [0.01, 0.05, 0.1, 0.2, 0.3],
+        "model__regressor__n_estimators": [100, 500, 700, 1000],
+        "model__regressor__loss": ["huber", "squared_error"]
     }
 
 
@@ -125,8 +132,6 @@ def get_best_estimator(model, tuning_parameters, data):
         model,
         tuning_parameters,
         cv=5,
-        scoring=["neg_mean_squared_error", "neg_mean_absolute_error"],
-        refit="neg_mean_absolute_error",
         n_jobs=5
     )
     grid_search.fit(data.TRAINING.predictors, data.TRAINING.outcome)
