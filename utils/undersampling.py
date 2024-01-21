@@ -1,92 +1,70 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
-
-from load_data import get_data_from_db
-
-
-# In[2]:
-
-
 import pandas as pd
 from imblearn.under_sampling import NearMiss
-from datetime import datetime
-from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder
+from sklearn.compose import make_column_transformer, make_column_selector
 
 
-# In[3]:
+from utils.load_data import get_data_from_db
 
 
-data = get_data_from_db(query="select * from filtered_weather_with_count_incidents")
+def get_weather_incident_data():
+    query = "select * from filtered_weather_with_count_incidents"
+    data = get_data_from_db(query=query)
+    return data
 
 
-# In[4]:
+def split_data(data, stratification_column):
+    variable_columns = [col for col in data.columns if col != stratification_column]
+    variables, stratified = data[variable_columns], data[stratification_column]
+    return variables, stratified
 
 
-data
+def get_column_transformers(ordinal_columns, one_hot_columns):
+    transformations = make_column_transformer(
+        (OneHotEncoder(), one_hot_columns),
+        (OrdinalEncoder(), ordinal_columns),
+        ("passthrough", make_column_selector(dtype_include="number")),
+    )
+
+    return transformations
 
 
-# Extract features and target variable
+def inverse_transform_columns_to_df(transformers, x_resampled, variables_columns):
 
-# In[5]:
+    count_oh_categories = transformers.named_transformers_['onehotencoder'].categories_[0].shape[0]
 
+    weather_main = transformers.named_transformers_['onehotencoder'].inverse_transform(
+        x_resampled[:, 0:count_oh_categories])
 
-X = data.drop(columns=['has_incident', 'grid_id'])
-y = data['has_incident']
+    dt_iso = (
+        transformers
+        .named_transformers_['ordinalencoder']
+        .inverse_transform(
+            x_resampled[:, count_oh_categories]
+            .reshape(-1, 1)
+        )
+    )
 
+    df = pd.DataFrame(x_resampled[:, count_oh_categories + 1:])
+    df.columns = [col for col in variables_columns if col not in ['dt_iso', 'weather_main']]
+    df["dt_iso"] = pd.Series(dt_iso.reshape(dt_iso.shape[0], ))
+    df["weather_main"] = pd.Series(weather_main.reshape(dt_iso.shape[0], ))
 
-# Label encode datetime columns
-
-# In[6]:
-
-
-label_encoder = LabelEncoder()
-X['dt_iso'] = label_encoder.fit_transform(X['dt_iso'])
-
-
-# One-hot encode categorical columns
-
-# In[7]:
-
-
-X = pd.get_dummies(X, columns=['weather_main'])
+    return df
 
 
-# In[9]:
+def undersample_weather_data(under_sampler):
+
+    data = get_weather_incident_data()
+    variables, has_incident = split_data(data, stratification_column="has_incident")
+    transformers = get_column_transformers(ordinal_columns=["dt_iso"], one_hot_columns=["weather_main"])
+    variables_transformed = transformers.fit_transform(variables)
+    variables_resampled, _ = under_sampler.fit_resample(variables_transformed, has_incident)
+    dataframe = inverse_transform_columns_to_df(transformers, variables_resampled, variables.columns)
+    return dataframe
 
 
-X
-
-
-# Initialize NearMiss
-
-# In[10]:
-
-
-nm = NearMiss(sampling_strategy=0.3, version=1) 
-
-
-# Fit and transform the dataset
-
-# In[11]:
-
-
-X_resampled, y_resampled = nm.fit_resample(X, y)
-
-
-# Combine the resampled features and target variable into a new dataframe
-
-# In[12]:
-
-
-df_resampled = pd.concat([X_resampled, y_resampled], axis=1)
-
-
-# In[13]:
-
-
-print(df_resampled)
-
+if __name__ == '__main__':
+    under_sampler = NearMiss(sampling_strategy=0.1, version=1)
+    data = undersample_weather_data(under_sampler)
+    print(data.columns)
