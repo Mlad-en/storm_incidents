@@ -44,7 +44,7 @@ To configure the file:
 To create the necessary migrations run:
 
    ```bash
-   pipenv run python3 manage.py makemigrations
+   pipenv run python3 manage.py makemigrations incident_predictions
    pipenv run python3 manage.py migrate
    ```
 

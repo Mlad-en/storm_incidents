@@ -17,6 +17,7 @@ openpyxl = "*"
 shapely = "*"
 overpy = "*"
 imbalanced-learn = "*"
+pyarrow = "*"
 
 [dev-packages]
 mypy = "*"
