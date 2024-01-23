@@ -1,3 +1,17 @@
+from django.shortcuts import render
+from django.template import loader
+from django.http import JsonResponse
+import folium
+#from shapely.geometry import Polygon, MultiPolygon
+#from shapely.geometry import Point
+#import psycopg2
+import pandas as pd
+from django.views.decorators.csrf import csrf_exempt
+#import io
+#import joblib
+import geopandas as gpd
+#import ssl
+
 from django.shortcuts import HttpResponse
 
 from incident_predictions import models
@@ -110,3 +124,28 @@ def load_weather_data(request):
         load_data_into_db(data, WeatherDataValidationModel, models.WeatherDataModel, logger)
 
         return HttpResponse("Success")
+
+def home(request):
+
+  
+ 
+  df = pd.DataFrame(list(models.AmsterdamGridModel.objects.all().values()))
+  
+  
+  wkt = df.geometry.apply(lambda x: x.wkt)
+  df = gpd.GeoDataFrame(df, crs=4326, geometry=gpd.GeoSeries.from_wkt(wkt))
+  x1,y1,x2,y2 = df['geometry'].total_bounds
+  
+  amsterdam_map = folium.Map(tiles='openstreetmap')
+  amsterdam_map.fit_bounds([[y1, x1], [y2, x2]])
+  folium.GeoJson(df["geometry"], style_function=lambda feature: {
+        "fillColor": "#orange",
+        "color": "blue",
+        "opacity": 0.8,
+        "weight": 0.1,
+    },).add_to(amsterdam_map)
+
+# Render the map in the Django template
+ # Render the map in the Django template
+  return render(request, 'myfirst.html', {'amsterdam_map': amsterdam_map._repr_html_()})
+

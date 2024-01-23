@@ -18,8 +18,10 @@ from django.contrib import admin
 from django.urls import path, include
 
 from incident_predictions.views import *
+from . import views
 
 urlpatterns = [
+    path('', views.home, name='home'),
     path("load_data/high_ground_water", load_high_ground_water, name="load_high_ground_water"),
     path("load_data/tree_data", load_tree_data, name="load_tree_data"),
     path("load_data/load_grid", load_grid, name="load_grid"),
