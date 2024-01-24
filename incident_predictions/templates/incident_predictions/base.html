@@ -1,6 +1,5 @@
-<!doctype html>
-<html>
-
+<!DOCTYPE html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Fire Department - Storm Emulator</title>
@@ -8,8 +7,69 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
     <link rel="icon" href="https://www.brandweer.nl/wp-content/themes/stuurlui/assets/img/favicon.ico">
-    <link rel="stylesheet" type="text/css" href="./incident_predictions/templates/incident_predictions/styles.css">
+
+
+    <style type="text/css">
+
+        .errorlist li {
+            color: orange;
+        }
+
+        .incorrect-type {
+            color: orange;
+        }
+
+        .input-field input[type]:not([readonly]),
+        .input-field input[type]:focus:not([readonly]),
+        .input-field textarea:not([readonly]),
+        .input-field textarea:focus:not([readonly]) {
+            border-bottom: 1px solid white;
+            box-shadow: 0 1px 0 0 white;
+            color: white;
+        }
+
+        .input-field input[type]:focus:not([readonly]) + label,
+        .input-field textarea:focus:not([readonly]) + label {
+            color: white;
+        }
+
+        .input-field input[type].invalid,
+        .input-field input[type].invalid:focus,
+        .input-field textarea.invalid,
+        .input-field textarea.invalid:focus {
+            border-bottom: 1px solid orange;
+            box-shadow: 0 1px 0 0 orange;
+        }
+
+        .input-field input[type].invalid:focus + label,
+        .input-field input[type].invalid ~ .helper-text::after,
+        .input-field input[type].invalid:focus ~ .helper-text::after,
+        .input-field textarea.invalid:focus + label,
+        .input-field textarea.invalid ~ .helper-text::after,
+        .input-field textarea.invalid:focus ~ .helper-text::after {
+            color: orange;
+        }
+
+        .input-field input[type].valid,
+        .input-field input[type].valid:focus,
+        .input-field textarea.valid,
+        .input-field textarea.valid:focus {
+            border-bottom: 1px solid white;
+            box-shadow: 0 1px 0 0 white;
+        }
+
+        .input-field input[type].valid:focus + label,
+        .input-field input[type].valid ~ .helper-text::after,
+        .input-field input[type].valid:focus ~ .helper-text::after,
+        .input-field textarea.valid:focus + label,
+        .input-field textarea.valid ~ .helper-text::after,
+        .input-field textarea.valid:focus ~ .helper-text::after {
+            color: white;
+        }
+
+    </style>
 </head>
+<body>
 
 
 <header class="red darken-4">
@@ -69,32 +129,15 @@
                 {% endfor %}
                 <div class="row">
                     <div class="input-field col s12 red-text text-darken-4">
-                        <div class="select-wrapper"><input class="select-dropdown dropdown-trigger" type="text"
-                                                           readonly="true"
-                                                           data-target="select-options-be8548fd-2009-1830-8081-a9b7e81dea19">
-                            <ul id="select-options-be8548fd-2009-1830-8081-a9b7e81dea19"
-                                class="dropdown-content select-dropdown" tabindex="0">
-                                <li class="disabled selected" id="select-options-be8548fd-2009-1830-8081-a9b7e81dea190"
-                                    tabindex="0"><span>Choose your option</span></li>
-                                <li id="select-options-be8548fd-2009-1830-8081-a9b7e81dea191" tabindex="0"><span>Option 1</span>
-                                </li>
-                                <li id="select-options-be8548fd-2009-1830-8081-a9b7e81dea192" tabindex="0"><span>Option 2</span>
-                                </li>
-                                <li id="select-options-be8548fd-2009-1830-8081-a9b7e81dea193" tabindex="0"><span>Option 3</span>
-                                </li>
-                            </ul>
-                            <svg class="caret" height="24" viewBox="0 0 24 24" width="24"
-                                 xmlns="http://www.w3.org/2000/svg">
-                                <path d="M7 10l5 5 5-5z"></path>
-                                <path d="M0 0h24v24H0z" fill="none"></path>
-                            </svg>
-                            <select tabindex="-1">
-                                <option value="" disabled="" selected="">Choose your option</option>
-                                <option value="1">Option 1</option>
-                                <option value="2">Option 2</option>
-                                <option value="3">Option 3</option>
-                            </select></div>
-                    </div>
+                          <div class="input-field col s12">
+                            <select>
+                              <option value="" disabled selected>Choose your option</option>
+                              <option value="1">Option 1</option>
+                              <option value="2">Option 2</option>
+                              <option value="3">Option 3</option>
+                            </select>
+                            <label>Materialize Select</label>
+                          </div>
 
                 </div>
                 <div class="row">
@@ -110,5 +153,20 @@
     </ul>
 
 </header>
+<main>
+    {{ amsterdam_map|safe }}
+
+</main>
 
 
+</body>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Materialize dropdown
+    var elems = document.querySelectorAll('.dropdown-trigger');
+    var instances = M.Dropdown.init(elems, options);
+  });
+</script>
+
+</html>

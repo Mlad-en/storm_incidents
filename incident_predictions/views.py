@@ -131,16 +131,24 @@ def home(request):
 def weather_predictions(request):
     context = {}
 
-    m = folium.Map([51.5, -0.25], zoom_start=10)
-    test = folium.Html('<b>Hello world</b>', script=True)
-    popup = folium.Popup(test, max_width=2650)
-    folium.RegularPolygonMarker(location=[51.5, -0.25], popup=popup).add_to(m)
-    m = m._repr_html_()
-    context = {'my_map': m}
+    df = pd.DataFrame(list(models.AmsterdamGridModel.objects.all().values()))
+    wkt = df.geometry.apply(lambda x: x.wkt)
+    df = gpd.GeoDataFrame(df, crs=4326, geometry=gpd.GeoSeries.from_wkt(wkt))
+    x1, y1, x2, y2 = df['geometry'].total_bounds
+    amsterdam_map = folium.Map(tiles='openstreetmap')
+    amsterdam_map.fit_bounds([[y1, x1], [y2, x2]])
+    folium.GeoJson(df["geometry"], style_function=lambda feature: {
+        "fillColor": "#orange",
+        "color": "blue",
+        "opacity": 0.8,
+        "weight": 0.1,
+    }, ).add_to(amsterdam_map)
+
+    context["amsterdam_map"] = amsterdam_map._repr_html_()
 
     if request.method == 'GET':
         context['form'] = forms.WeatherDataForm()
-        return render(request, "incident_predictions/weather_predictions.html", context)
+        return render(request, "incident_predictions/base.html", context)
 
     if request.method == 'POST':
         form = forms.WeatherDataForm(request.POST or None)
@@ -150,4 +158,4 @@ def weather_predictions(request):
             return HttpResponse("Success")
 
         else:
-            return render(request, "incident_predictions/weather_predictions.html", context, status=400)
+            return render(request, "incident_predictions/base.html", context, status=400)
