@@ -17,6 +17,7 @@ overpy = "*"
 pyarrow = "*"
 scikit-learn = "==1.3.2"
 imbalanced-learn = "*"
+folium = "*"
 
 [dev-packages]
 mypy = "*"
