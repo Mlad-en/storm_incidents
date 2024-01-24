@@ -1,4 +1,3 @@
-import folium
 from django.shortcuts import HttpResponse, render
 
 from incident_predictions import models
@@ -13,7 +12,9 @@ from utils.soil import SourceSoil, SoilValidationModel
 from utils.buildings import SourceHistoricBuilding, BuildingsValidationModel
 from utils.vunerable_locations import SourceVunerableLocations, LocationsValidationModel
 from utils.weather_data import SourceWeatherData, WeatherDataValidationModel
-
+import folium
+import geopandas as gpd
+import pandas as pd
 import logging
 
 logger = logging.getLogger(__name__)
@@ -55,7 +56,6 @@ def load_grid(request):
 
 
 def load_incidents(request):
-
     if request.method == 'GET':  # TODO: Update either method or shift into the admin page
         logger.info("Method Started")
         data = StormIncidents().clean_data().dataframe
@@ -66,7 +66,6 @@ def load_incidents(request):
 
 
 def load_soil(request):
-
     if request.method == 'GET':  # TODO: Update either method or shift into the admin page
         logger.info("Method Started")
         data = SourceSoil().clean_data().dataframe
@@ -78,7 +77,6 @@ def load_soil(request):
 
 
 def load_buildings(request):
-
     if request.method == 'GET':  # TODO: Update either method or shift into the admin page
         logger.info("Method Started")
         data = SourceHistoricBuilding().clean_data().dataframe
@@ -90,7 +88,6 @@ def load_buildings(request):
 
 
 def load_vunerable_locations(request):
-
     if request.method == 'GET':  # TODO: Update either method or shift into the admin page
         logger.info("Method Started")
         data = SourceVunerableLocations().clean_data().dataframe
@@ -102,7 +99,6 @@ def load_vunerable_locations(request):
 
 
 def load_weather_data(request):
-
     if request.method == 'GET':  # TODO: Update either method or shift into the admin page
         logger.info("Method Started")
         data = SourceWeatherData().clean_data().dataframe
@@ -113,6 +109,27 @@ def load_weather_data(request):
         return HttpResponse("Success")
 
 
+def home(request):
+    df = pd.DataFrame(list(models.AmsterdamGridModel.objects.all().values()))
+
+    wkt = df.geometry.apply(lambda x: x.wkt)
+    df = gpd.GeoDataFrame(df, crs=4326, geometry=gpd.GeoSeries.from_wkt(wkt))
+    x1, y1, x2, y2 = df['geometry'].total_bounds
+
+    amsterdam_map = folium.Map(tiles='openstreetmap')
+    amsterdam_map.fit_bounds([[y1, x1], [y2, x2]])
+    folium.GeoJson(df["geometry"], style_function=lambda feature: {
+        "fillColor": "#orange",
+        "color": "blue",
+        "opacity": 0.8,
+        "weight": 0.1,
+    }, ).add_to(amsterdam_map)
+
+    # Render the map in the Django template
+    # Render the map in the Django template
+    return render(request, 'myfirst.html', {'amsterdam_map': amsterdam_map._repr_html_()})
+
+
 def weather_predictions(request):
     context = {}
 
@@ -120,7 +137,7 @@ def weather_predictions(request):
     test = folium.Html('<b>Hello world</b>', script=True)
     popup = folium.Popup(test, max_width=2650)
     folium.RegularPolygonMarker(location=[51.5, -0.25], popup=popup).add_to(m)
-    m= m._repr_html_()
+    m = m.repr_html_()
     context = {'my_map': m}
 
     if request.method == 'GET':
