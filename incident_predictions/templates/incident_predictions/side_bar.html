@@ -1,0 +1,47 @@
+{% extends "incident_predictions/nav_bar.html" %}
+
+{% block content %}
+
+
+    <form method="post" action="/weather_predictions">
+        {% csrf_token %}
+    <div class="w-64 h-screen bg-red-600">
+
+    <div>
+        <img src="https://www.brandweer.nl/wp-content/themes/stuurlui/assets/img/favicon.ico" class="px-28 pt-4" alt="Brandweer logo" />
+
+    </div>
+        <div class="px-6 pt-4">
+        <hr class="border-white">
+    </div>
+<div class="relative left-2 w-60">
+    {% for field in form %}
+        {{ field.errors }}
+        {% if field != form.weather_main %}
+            <label for="{{ field.id }}"> {{ field.label_tag }} </label>
+            <input id="{{ field.id }}" type="text" name="{{ field.name }}" value="{{ field.value|default:'' }}" class="w-full rounded pl-8 pr-4 py-2.5 text-xs font-light bg-white text-gray-400 placeholder-gray-700 focus:outline-none focus:ring-1 focus:ring-gray-500" placeholder="0.00">
+        {% else %}
+            <label for="{{ field.id }}">{{ field.label_tag }}</label>
+            <select id="{{ field.id }}" name="{{ field.name }}" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                {% for value in field %}
+                    <option value="{{ value }}" {% if value == field.value %}selected{% endif %}>{{ value }}</option>
+                {% endfor %}
+            </select>
+        {% endif %}
+    {% endfor %}
+</div>
+
+    <div class="px-6 pt-4">
+        <hr class="border-white">
+    </div>
+    <div class="px-16 pt-4">
+        <button type="submit" class="text-red-700 bg-white focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center">Simulate</button>
+    </div>
+
+</div>
+    </form>
+
+        {% block data %}
+        {% endblock %}
+
+{% endblock %}

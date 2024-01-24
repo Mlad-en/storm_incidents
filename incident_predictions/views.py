@@ -1,6 +1,8 @@
-from django.shortcuts import HttpResponse
+import folium
+from django.shortcuts import HttpResponse, render
 
 from incident_predictions import models
+from incident_predictions import forms
 from utils.high_ground_water import HighGroundWater, HighGroundWaterValidationModel
 from utils.load_data import load_data_into_db
 from utils.trees import TreesData, TreeColumnsEnglish, TreeValidationModel
@@ -11,7 +13,6 @@ from utils.soil import SourceSoil, SoilValidationModel
 from utils.buildings import SourceHistoricBuilding, BuildingsValidationModel
 from utils.vunerable_locations import SourceVunerableLocations, LocationsValidationModel
 from utils.weather_data import SourceWeatherData, WeatherDataValidationModel
-
 
 import logging
 
@@ -110,3 +111,28 @@ def load_weather_data(request):
         load_data_into_db(data, WeatherDataValidationModel, models.WeatherDataModel, logger)
 
         return HttpResponse("Success")
+
+
+def weather_predictions(request):
+    context = {}
+
+    m = folium.Map([51.5, -0.25], zoom_start=10)
+    test = folium.Html('<b>Hello world</b>', script=True)
+    popup = folium.Popup(test, max_width=2650)
+    folium.RegularPolygonMarker(location=[51.5, -0.25], popup=popup).add_to(m)
+    m= m._repr_html_()
+    context = {'my_map': m}
+
+    if request.method == 'GET':
+        context['form'] = forms.WeatherDataForm()
+        return render(request, "incident_predictions/weather_predictions.html", context)
+
+    if request.method == 'POST':
+        form = forms.WeatherDataForm(request.POST or None)
+        context['form'] = form
+        print(form.is_valid())
+        if form.is_valid():
+            return HttpResponse("Success")
+
+        else:
+            return render(request, "incident_predictions/weather_predictions.html", context, status=400)
