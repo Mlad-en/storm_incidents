@@ -125,8 +125,6 @@ def home(request):
         "weight": 0.1,
     }, ).add_to(amsterdam_map)
 
-    # Render the map in the Django template
-    # Render the map in the Django template
     return render(request, 'myfirst.html', {'amsterdam_map': amsterdam_map._repr_html_()})
 
 
@@ -137,7 +135,7 @@ def weather_predictions(request):
     test = folium.Html('<b>Hello world</b>', script=True)
     popup = folium.Popup(test, max_width=2650)
     folium.RegularPolygonMarker(location=[51.5, -0.25], popup=popup).add_to(m)
-    m = m.repr_html_()
+    m = m._repr_html_()
     context = {'my_map': m}
 
     if request.method == 'GET':
