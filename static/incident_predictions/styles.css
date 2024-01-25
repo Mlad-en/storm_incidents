@@ -1,17 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Fire Department - Storm Emulator</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-    <link rel="icon" href="https://www.brandweer.nl/wp-content/themes/stuurlui/assets/img/favicon.ico">
-
-
-    <style type="text/css">
-
-        .errorlist li {
+ .errorlist li {
             color: orange;
         }
 
@@ -66,28 +53,3 @@
         .input-field textarea.valid:focus ~ .helper-text::after {
             color: white;
         }
-
-    </style>
-
-</head>
-<body>
-
-
-<header class="red darken-4">
-    
-{% include 'incident_predictions/nav_bar.html' %}
-
-{% include 'incident_predictions/side_bar.html' %}
-
-</header>
-<main>
-    {{ amsterdam_map|safe }}
-
-</main>
-
-
-</body>
-
-
-
-</html>

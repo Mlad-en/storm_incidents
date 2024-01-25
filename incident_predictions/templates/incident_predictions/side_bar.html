@@ -1,47 +1,101 @@
-{% extends "incident_predictions/nav_bar.html" %}
+{% load static %}
 
-{% block content %}
+<link rel="stylesheet" href="{% static 'style.css' %}">
+<style>
+    .container {
+        height: 50px;
+        position: relative;
+    }
+
+    .vertical-center {
+        margin: 0;
+        position: absolute;
+        top: 50%;
+        -ms-transform: translateY(-50%);
+        transform: translateY(-50%);
+    }
+
+    .dropdown {
+        background-color: #fff;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+</style>
 
 
-    <form method="post" action="/weather_predictions">
-        {% csrf_token %}
-    <div class="w-64 h-screen bg-red-600">
+{% block side_bar %}
 
-    <div>
-        <img src="https://www.brandweer.nl/wp-content/themes/stuurlui/assets/img/favicon.ico" class="px-28 pt-4" alt="Brandweer logo" />
+    <ul class="sidenav sidenav-fixed red darken-4">
+        <div class="row"></div>
+        <div class="row">
+            <div class="col s12">
+                <div class="row">
+                    <div class="col s4"></div>
+                    <div class="col s4">
+                        <a href="">
+                            <img src="https://www.brandweer.nl/wp-content/themes/stuurlui/assets/img/favicon.ico"
+                                 alt="">
+                        </a>
+                    </div>
+                    <div class="col s4"></div>
+                </div>
+            </div>
 
-    </div>
-        <div class="px-6 pt-4">
-        <hr class="border-white">
-    </div>
-<div class="relative left-2 w-60">
-    {% for field in form %}
-        {{ field.errors }}
-        {% if field != form.weather_main %}
-            <label for="{{ field.id }}"> {{ field.label_tag }} </label>
-            <input id="{{ field.id }}" type="text" name="{{ field.name }}" value="{{ field.value|default:'' }}" class="w-full rounded pl-8 pr-4 py-2.5 text-xs font-light bg-white text-gray-400 placeholder-gray-700 focus:outline-none focus:ring-1 focus:ring-gray-500" placeholder="0.00">
-        {% else %}
-            <label for="{{ field.id }}">{{ field.label_tag }}</label>
-            <select id="{{ field.id }}" name="{{ field.name }}" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
-                {% for value in field %}
-                    <option value="{{ value }}" {% if value == field.value %}selected{% endif %}>{{ value }}</option>
+        </div>
+        <div class="row">
+            <form class="col s12" method="post" action="/weather_predictions">
+                {% csrf_token %}
+                {% for field in form %}
+                    {{ field.errors }}
+                    {% if field != form.weather_main %}
+                        <div class="row">
+                            <div class="input-field col s12">
+                                <label for="{{ field.id }}"
+                                       class="white-text">{{ field.label_tag }}</label>
+                                <input id="{{ field.id }}" type="text" name="{{ field.name }}"
+                                       value="{{ field.value|default:'0.00' }}" class="digit-field">
+                            </div>
+                        </div>
+
+                    {% else %}
+                        <div class="row">
+                    <div class="input-field col s12">
+                        <select>
+                            <option value="" disabled selected>Choose your option</option>
+                            <option value="1">Option 1</option>
+                            <option value="2">Option 2</option>
+                            <option value="3">Option 3</option>
+                        </select>
+                        <label>Materialize Select</label>
+                    </div>
+                </div>
+                    {% endif %}
                 {% endfor %}
-            </select>
-        {% endif %}
-    {% endfor %}
-</div>
+                <div class="row">
+                    <div class="input-field col s12 red-text text-darken-4">
+                        <div class="container">
+                            <div class="vertical-center">
+                                <button class="btn  white red-text text-darken-4 center" type="submit"
+                                        name="action">Simulate
+                                    <i class="material-icons left">play_arrow</i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+        </div>
+        </form>
+        </div>
+    </ul>
 
-    <div class="px-6 pt-4">
-        <hr class="border-white">
-    </div>
-    <div class="px-16 pt-4">
-        <button type="submit" class="text-red-700 bg-white focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center">Simulate</button>
-    </div>
+    <script type="text/javascript"
+            src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var elems = document.querySelectorAll('select');
+            var instances = M.FormSelect.init(elems, {});
+        });
 
-</div>
-    </form>
-
-        {% block data %}
-        {% endblock %}
+    </script>
 
 {% endblock %}
