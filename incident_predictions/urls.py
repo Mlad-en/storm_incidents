@@ -21,7 +21,6 @@ from incident_predictions.views import *
 from . import views
 
 urlpatterns = [
-    path('', views.home, name='home'),
     path("load_data/high_ground_water", load_high_ground_water, name="load_high_ground_water"),
     path("load_data/tree_data", load_tree_data, name="load_tree_data"),
     path("load_data/load_grid", load_grid, name="load_grid"),
@@ -31,5 +30,7 @@ urlpatterns = [
     path("load_data/load_vunerable_locations", load_vunerable_locations, name="load_vunerable_locations"),
     path("load_data/load_weather_data", load_weather_data, name="load_weather_data"),
     path("weather_predictions", weather_predictions, name="weather_predictions"),
+    path("weather_current", weather_current, name="weather_current"),
+    path("login", login_view, name="login"),
 
 ]

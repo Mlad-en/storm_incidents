@@ -1,0 +1,88 @@
+{% load static %}
+
+<link rel="stylesheet" href="{% static 'style.css' %}">
+<style>
+    .container {
+        height: 50px;
+        position: relative;
+    }
+
+    .vertical-center {
+        margin: 0;
+        position: absolute;
+        top: 50%;
+        -ms-transform: translateY(-50%);
+        transform: translateY(-50%);
+    }
+
+    .dropdown {
+        background-color: #fff;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    input.select-dropdown {
+        color: white;
+        border-bottom: 1px solid white;
+    }
+
+    ul.dropdown-content.select-dropdown li span {
+        border-bottom: 1px solid white;
+        box-shadow: 0 1px 0 0 white;
+        background: white;
+        color: red;
+    }
+</style>
+
+
+{% block side_bar %}
+
+    <ul class="sidenav sidenav-fixed red darken-4">
+        <div class="row"></div>
+        <div class="row">
+            <div class="col s12">
+                <div class="row">
+                    <div class="col s1"></div>
+                    <div class="col s4">
+                        <a href="">
+                            <img src="https://www.brandweer.nl/wp-content/uploads/2021/07/logo-nav.svg"
+                                 alt="">
+                        </a>
+                    </div>
+                    <div class="col s4"></div>
+                </div>
+            </div>
+
+        </div>
+        <div class="row">
+            <form class="col s12" method="post" action="/weather_predictions">
+                {% csrf_token %}
+
+                {% for field in form %}
+                    {% if forloop.counter|divisibleby:2 %}
+                        </div> {# Close the previous row after every second field #}
+                        <div class="row">
+                    {% endif %}
+                <div class="input-field col s6">
+                    <label for="{{ field.id }}" class="white-text">{{ field.label_tag }}</label>
+                    <input disabled id="{{ field.id }}" type="text" name="{{ field.name }}"
+                           value="{{ field.value|default:'0.00' }}" class="digit-field">
+                </div>
+                {% if forloop.last and not forloop.counter|divisibleby:2 %}
+                    </div> {# Close the last row if there is an odd number of fields #}
+                {% endif %}
+                {% endfor %}
+        </form>
+        </div>
+    </ul>
+
+    <script type="text/javascript"
+            src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var elems = document.querySelectorAll('select');
+            var instances = M.FormSelect.init(elems, {});
+        });
+
+    </script>
+
+{% endblock %}

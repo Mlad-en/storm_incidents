@@ -5,6 +5,8 @@ class HighGroundWaterModel(models.Model):
 
     class Meta:
         db_table = "incident_predictions_high_groundwater"
+        verbose_name = "high ground water"
+        verbose_name_plural = "high ground water"
 
     DRAINAGE_CHOICES = [
         ('DRAIN_POSSIBLE', 'DRAIN_POSSIBLE'),
@@ -20,6 +22,8 @@ class TreesModel(models.Model):
 
     class Meta:
         db_table = "incident_predictions_trees"
+        verbose_name = "tree"
+        verbose_name_plural = "trees"
 
     TREE_HEIGHT_CHOICES = [
         ('HEIGHT_UNKNOWN', 'HEIGHT_UNKNOWN'),
@@ -63,6 +67,8 @@ class AmsterdamGridModel(models.Model):
 
     class Meta:
         db_table = "incident_predictions_amsterdam_grid"
+        verbose_name = "amsterdam grid"
+        verbose_name_plural = "amsterdam grids"
 
     grid_id = models.CharField(max_length=255, null=False)
     geometry = models.PolygonField()
@@ -72,6 +78,8 @@ class StormDamageModel(models.Model):
 
     class Meta:
         db_table = "incident_predictions_storm_damage"
+        verbose_name = "storm damage"
+        verbose_name_plural = "storm damage"
 
     incident_id = models.IntegerField()
     date = models.DateField()
@@ -89,6 +97,8 @@ class SoilModel(models.Model):
 
     class Meta:
         db_table = "incident_predictions_soil"
+        verbose_name = "soil information"
+        verbose_name_plural = "soil information"
 
     location = models.CharField(max_length=255)
     zone = models.CharField(max_length=255)
@@ -100,6 +110,8 @@ class BuildingsModel(models.Model):
 
     class Meta:
         db_table = "incident_predictions_buildings"
+        verbose_name = "building information"
+        verbose_name_plural = "buildings information"
 
     construction_year = models.IntegerField()
     geometry = models.MultiPolygonField()
@@ -109,6 +121,8 @@ class VunerableLocationsModel(models.Model):
 
     class Meta:
         db_table = "incident_predictions_vunerable_locations"
+        verbose_name = "vunerable location"
+        verbose_name_plural = "vunerable locations"
 
     type = models.CharField(max_length=100)
     region = models.CharField(max_length=150)
@@ -118,8 +132,24 @@ class VunerableLocationsModel(models.Model):
 
 class WeatherDataModel(models.Model):
 
+    WEATHER_MAIN_CHOICES = [
+        ("Clear", 'Clear'),
+        ("Thunderstorm", 'Thunderstorm'),
+        ("Fog", 'Fog'),
+        ("Smoke", 'Smoke'),
+        ("Haze", 'Haze'),
+        ("Snow", 'Snow'),
+        ("Rain", 'Rain'),
+        ("Mist", 'Mist'),
+        ("Drizzle", 'Drizzle'),
+        ("Clouds", 'Clouds'),
+        ("Squall", 'Squall'),
+    ]
+
     class Meta:
         db_table = "incident_predictions_weather_data"
+        verbose_name = "weather data"
+        verbose_name_plural = "weather data"
 
     dt_iso = models.DateTimeField()
     temp = models.FloatField()
@@ -135,13 +165,15 @@ class WeatherDataModel(models.Model):
     rain_1h = models.FloatField()
     rain_3h = models.FloatField()
     snow_1h = models.FloatField()
-    weather_main = models.CharField(max_length=150)
+    weather_main = models.CharField(max_length=15, choices=WEATHER_MAIN_CHOICES)
 
 
 class WeatherMainPriority(models.Model):
 
     class Meta:
         db_table = "incident_predictions_weather_main_priority"
+        verbose_name = "weather data priority"
+        verbose_name_plural = "weather data priorities"
 
     weather_main = models.CharField(max_length=50, unique=True)
     weather_priority = models.IntegerField()
@@ -151,6 +183,27 @@ class TreeTypeTranslations(models.Model):
 
     class Meta:
         db_table = "incident_predictions_tree_type_translations"
+        verbose_name = "tree type translation"
+        verbose_name_plural = "tree type translations"
 
     dutch_name = models.CharField(max_length=150, unique=True)
     english_name = models.CharField(max_length=150)
+
+
+class PredictiveModels(models.Model):
+
+    class Meta:
+        verbose_name = "predictive model"
+        verbose_name_plural = "predictive models"
+
+    MODEL_TYPES = [
+        ('COUNT', 'COUNT'),
+        ('CLASSIFICATION', 'CLASSIFICATION'),
+        ('PROBABILITY', 'PROBABILITY'),
+        ('OTHER', 'OTHER'),
+    ]
+
+    name = models.CharField(max_length=150)
+    version = models.CharField(max_length=10)
+    model_type = models.CharField(max_length=20, choices=MODEL_TYPES)
+    file = models.FileField()

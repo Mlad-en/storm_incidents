@@ -1,3 +1,4 @@
+create view environment_metrics as
 SELECT ted.grid_id,
        ted.tree_count,
        ted.mean_tree_age,

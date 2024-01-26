@@ -1,5 +1,6 @@
 from django.contrib import admin
 from incident_predictions import models, database_views
+
 # Register your models here.
 
 
@@ -22,32 +23,28 @@ class TreeTypeTranslationsAdmin(admin.ModelAdmin):
 
 @admin.register(models.HighGroundWaterModel)
 class HighGroundWaterModelAdmin(admin.ModelAdmin):
-
-    list_display = ('location','drainage','geometry')
+    list_display = ('location', 'drainage', 'geometry')
 
 
 @admin.register(models.TreesModel)
 class TreesModelAdmin(admin.ModelAdmin):
-
     list_display = (
-        'tree_id','species_name','species_name_short',
-        'species_name_nl','species_name_top',
-        'tree_height','trunk_diameter_class',
-        'plant_year','tree_age','predicted_age',
-        'tree_type','location_detailed',
+        'tree_id', 'species_name', 'species_name_short',
+        'species_name_nl', 'species_name_top',
+        'tree_height', 'trunk_diameter_class',
+        'plant_year', 'tree_age', 'predicted_age',
+        'tree_type', 'location_detailed',
         'type_manager',
         'type_owner')
 
 
 @admin.register(models.AmsterdamGridModel)
 class AmsterdamGridModelAdmin(admin.ModelAdmin):
-
     list_display = ('id', 'grid_id')
 
 
 @admin.register(models.StormDamageModel)
 class StormDamageModelAdmin(admin.ModelAdmin):
-
     list_display = (
         'incident_id',
         'date',
@@ -93,4 +90,13 @@ class WeatherDataModelAdmin(admin.ModelAdmin):
         'wind_deg',
         'wind_gust',
         'weather_main'
-)
+    )
+
+
+@admin.register(models.PredictiveModels)
+class PredictiveModelsAdmin(admin.ModelAdmin):
+    list_display = [
+        "name",
+        "version",
+        "model_type"
+    ]

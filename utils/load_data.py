@@ -33,6 +33,7 @@ def get_script_files():
     scripts_dir = project_root / "scripts"
     assert os.path.exists(scripts_dir)
     scripts = [scripts_dir/script for script in os.listdir(scripts_dir) if script.endswith(".sql")]
+    scripts.sort()
     return scripts
 
 
@@ -48,9 +49,12 @@ def load_scripts_into_database():
                 except (
                         psycopg2.errors.DuplicateTable,
                         psycopg2.errors.UniqueViolation,
-                        psycopg2.errors.InFailedSqlTransaction
+                        psycopg2.errors.InFailedSqlTransaction,
+                        psycopg2.errors.UndefinedTable,
+                        psycopg2.errors.NotSupportedError
                 ) as e:
                     print(e)
+                    print(script)
                     connection.rollback()
         cursor.close()
 
@@ -58,3 +62,7 @@ def load_scripts_into_database():
 def get_data_from_db(query):
     connection = get_connection()
     return sql_io.read_sql_query(query, con=connection)
+
+
+if __name__ == '__main__':
+    load_scripts_into_database()
