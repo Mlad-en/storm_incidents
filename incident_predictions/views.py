@@ -5,7 +5,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.shortcuts import HttpResponse, render, redirect
 
 from incident_predictions import models, forms, database_views
-from utils.convert_model_to_map import convert_model_to_map, convert_model_to_geopandas
+from utils.convert_model_to_map import convert_model_to_map, convert_model_to_geopandas, convert_predictions_to_map
 from utils.high_ground_water import HighGroundWater, HighGroundWaterValidationModel
 from utils.load_data import load_data_into_db
 from utils.predictive_model_utils import get_model_choices, load_model
@@ -124,7 +124,7 @@ def login_view(request):
             if user is not None:
                 login(request, user)
                 print(request, f'Welcome, {username}!')
-                return redirect('/weather_predictions')
+                return redirect('/weather_current')
             else:
                 messages.error(request, 'Invalid username or password.')
         else:
@@ -168,10 +168,14 @@ def weather_predictions(request):
             weather_df = weather_df.merge(grid_info, how="cross")
             predictive_model, model_type = load_model(form.cleaned_data, predictive_models)
             predictions = predictive_model.predict(weather_df)
-            weather_df.loc[:, "predictions"] = predictions
-            weather_df = grid_info.merge(weather_df, on="grid_id")
-            weather_df = grid_info.merge(buildings_locations, on="grid_id")
-            return HttpResponse("Success")
+            weather_df = weather_df.merge(grid_info, on="grid_id")
+            weather_df = weather_df.assign(predictions=predictions).copy()
+            weather_df = amsterdam_geo.merge(weather_df, on="grid_id")
+            weather_df = weather_df.merge(buildings_locations, on="grid_id", how="left")
+            amsterdam_map = convert_predictions_to_map(weather_df)
+            context["amsterdam_map"] = amsterdam_map
+
+            return render(request, "incident_predictions/base.html", context, status=200)
 
         else:
             return render(request, "incident_predictions/base.html", context, status=400)

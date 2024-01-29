@@ -207,3 +207,10 @@ class PredictiveModels(models.Model):
     version = models.CharField(max_length=10)
     model_type = models.CharField(max_length=20, choices=MODEL_TYPES)
     file = models.FileField()
+
+
+class ServiceAreas(models.Model):
+
+    location = models.CharField(max_length=255)
+    municipality = models.CharField(max_length=50)
+    geometry = models.PointField()

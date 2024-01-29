@@ -21,6 +21,12 @@ folium = "*"
 pipwin = "*"
 pytorch-tabnet = "*"
 httpx = "*"
+umap-learn = "*"
+matplotlib = "*"
+streamlit = "*"
+seaborn = "*"
+watchdog = "*"
+streamlit-folium = "*"
 
 [dev-packages]
 mypy = "*"

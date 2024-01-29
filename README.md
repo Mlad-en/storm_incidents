@@ -39,6 +39,10 @@ To configure the file:
        DB_PASSWORD="EXAMPLE_PASSWORD" # the name of your user's password
        DB_HOST_NAME="EXAMPLE_HOST" # the host name of your database
        DB_PORT=5432 # the name of your database
+       OPEN_WEATHER_URL="https://api.openweathermap.org/data/2.5/forecast"
+       OPEN_WEATHER_API_KEY="API_KEY"
+       OPEN_WEATHER_LATITUDE=52.370216
+       OPEN_WEATHER_LONGITUDE=4.895168
        ```
 2. **Migrate the database** - after you have configured the database settings, you need to migrate the django models into database tables. 
 To create the necessary migrations run:

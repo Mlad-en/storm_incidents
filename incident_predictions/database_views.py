@@ -225,7 +225,7 @@ class EnvironmentMetricsGridWithIncidents(models.Model):
 class GridBuildingsVunerableLocations(models.Model):
 
     class Meta:
-        db_table = "grid_environment_with_incidents"
+        db_table = "grid_buildings_vn_locs"
         managed = False
 
     grid_id = models.CharField(max_length=255, primary_key=True)
