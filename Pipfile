@@ -27,6 +27,7 @@ streamlit = "*"
 seaborn = "*"
 watchdog = "*"
 streamlit-folium = "*"
+pandas = "*"
 
 [dev-packages]
 mypy = "*"

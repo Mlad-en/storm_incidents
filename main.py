@@ -1,7 +1,5 @@
-from time import sleep
-
 import folium
-from streamlit_folium import st_folium
+from streamlit_folium import st_folium, folium_static
 
 from configurations import configure_django
 
@@ -77,33 +75,14 @@ def load_model():
     return joblib.load(filtered_models.file.path)
 
 
-def create_map(predictions):
-    x1, y1, x2, y2 = predictions['geometry'].total_bounds
-    print(x1, y1, x2, y2)
-    amsterdam_map = folium.Map(tiles='openstreetmap')
-    amsterdam_map.fit_bounds([[y1, x1], [y2, x2]])
-    predictions["grid_id"] = predictions["grid_id"].astype(str)
+def create_amsterdam_map(amsterdam_gdf):
+    amsterdam_map = folium.Map(location=[52.3676, 4.9041], zoom_start=12)
     cast_types = ["count", "count_vnl_locs", "avg_year", "predictions"]
-    predictions[cast_types] = predictions[cast_types].fillna(0).astype(int)
-
-    try:
-        folium.GeoJson(
-            predictions[["grid_id", "geometry"] + cast_types].fillna(0),
-            style_function=lambda feature: {
-                "fillColor": "#orange",
-                "color": "blue",
-                "opacity": 0.8,
-                "weight": 0.1,
-            },
-            tooltip=folium.features.GeoJsonTooltip(
-                fields=cast_types,
-                labels=True,
-                sticky=True
-            )
-        ).add_to(amsterdam_map)
-
-    except BaseException as e:
-        print(e)
+    amsterdam_gdf[cast_types] = amsterdam_gdf[cast_types].fillna(0).astype(int)
+    folium.GeoJson(
+        amsterdam_gdf,
+        tooltip=folium.features.GeoJsonTooltip(fields=['grid_id', 'avg_year', 'predictions'], labels=True, sticky=True)
+    ).add_to(amsterdam_map)
 
     return amsterdam_map
 
@@ -166,9 +145,6 @@ if __name__ == '__main__':
             DATA = GEOGRAPHY.merge(DATA, on="grid_id")
 
         if isinstance(DATA, pd.DataFrame):
-            map = st_folium(create_map(DATA), width=725)
+            amsterdam_map = create_amsterdam_map(DATA[["geometry", "count", "count_vnl_locs", "avg_year", "predictions", 'grid_id']])
+            st.markdown(folium_static(amsterdam_map, width=1000, height=800), unsafe_allow_html=True)
 
-        st_map = map
-
-        with st.form("Other info"):
-            st.write("Some text")
