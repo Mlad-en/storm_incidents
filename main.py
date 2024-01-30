@@ -132,19 +132,29 @@ GEOGRAPHY = full_geography()
 GEOGRAPHY = GEOGRAPHY.merge(BUILDINGS, on="grid_id", how="left")
 
 
-if __name__ == '__main__':
-
+def main():
     if check_password():
         sns.set_theme()
         DATA = None
-        weather_info = weather_input()
+
+        # Main content area
+        st.title("Storm Incidents Prediction")
+
+        # Weather input in the left control panel
+        with st.sidebar:
+            st.header("Weather Information")
+            weather_info = weather_input()
+
+        # Display map if weather_info is available
         if isinstance(weather_info, pd.DataFrame):
             DATA = GRID.merge(weather_info, how='cross')
             predictions = MODEL.predict(DATA)
             DATA.loc[:, "predictions"] = predictions
             DATA = GEOGRAPHY.merge(DATA, on="grid_id")
 
-        if isinstance(DATA, pd.DataFrame):
-            amsterdam_map = create_amsterdam_map(DATA[["geometry", "count", "count_vnl_locs", "avg_year", "predictions", 'grid_id']])
-            st.markdown(folium_static(amsterdam_map, width=1000, height=800), unsafe_allow_html=True)
+            if isinstance(DATA, pd.DataFrame):
+                amsterdam_map = create_amsterdam_map(DATA[["geometry", "count", "count_vnl_locs", "avg_year", "predictions", 'grid_id']])
+                st.markdown(folium_static(amsterdam_map, width=1000, height=800), unsafe_allow_html=True)
 
+if __name__ == '__main__':
+    main()
