@@ -163,4 +163,4 @@ def undersample_daily_weather_data(under_sampler: NearMiss | RandomUnderSampler 
         "dt_iso",
         "weather_main"
     )
-    return dataframe
+    return dataframe, strat

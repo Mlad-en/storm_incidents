@@ -77,14 +77,23 @@ def load_model():
 
 def create_amsterdam_map(amsterdam_gdf):
     amsterdam_map = folium.Map(location=[52.3676, 4.9041], zoom_start=12)
-    cast_types = ["count", "count_vnl_locs", "avg_year", "predictions"]
+    cast_types = ["count_building_year", "count_vnl_locs", "avg_building_year", "predictions"]
     amsterdam_gdf[cast_types] = amsterdam_gdf[cast_types].fillna(0).astype(int)
+
+    def style_function(feature):
+        prediction = feature["properties"]["predictions"]
+        fill_opacity = 0.5 if prediction == 1 else 0  # Adjust the fillOpacity for red areas
+        color = "red" if prediction == 1 else "none"
+        return {"fillColor": color, "color": "black", "weight": 1, "fillOpacity": fill_opacity}
+
     folium.GeoJson(
         amsterdam_gdf,
-        tooltip=folium.features.GeoJsonTooltip(fields=['grid_id', 'avg_year', 'predictions'], labels=True, sticky=True)
+        style_function=style_function,
+        tooltip=folium.features.GeoJsonTooltip(fields=['grid_id', 'avg_building_year', 'predictions'], labels=True, sticky=True)
     ).add_to(amsterdam_map)
 
     return amsterdam_map
+
 
 
 def weather_input():
@@ -94,6 +103,7 @@ def weather_input():
             ("Clear", "Thunderstorm", "Fog", "Smoke", "Snow", "Rain", "Mist", "Drizzle", "Clouds"))
         temperature = st.slider('What is the temperature?', -30, 50, 1)
         min_temperature = st.slider('What is the minimum temperature?', -30, 50, 1)
+        max_temperature = st.slider('What is the maximum temperature?', -30, 50, 1)
         wind_speed = st.slider('What is the wind speed?', 0, 200, 1)
         wind_degree = st.slider('What is the wind degree?', 0, 360, 1)
         wind_gust = st.slider('What is the wind gust?', 0, 200, 1)
@@ -105,19 +115,17 @@ def weather_input():
             return pd.DataFrame(
                 {
                     "weather_main": [weather_main],
-                    "temp": [temperature],
-                    "temp_min": [min_temperature],
-                    "wind_speed": [wind_speed],
-                    "wind_deg": [wind_degree],
-                    "wind_gust": [wind_gust],
-                    "rain_1h": [rain_1h],
-                    "snow_1h": [snow_1h],
-                    "rain_3h": [0],
-                    "dew_point": [0],
-                    "humidity": [0],
-                    "feels_like": [0],
-                    "pressure": [0],
-                    "temp_max": [0],
+                    "avg_temp": [temperature],
+                    "avg_temp_min": [min_temperature],
+                    "avg_wind_speed": [wind_speed],
+                    "avg_wind_deg": [wind_degree],
+                    "avg_wind_gust": [wind_gust],
+                    "avg_rain_1h": [rain_1h],
+                    "avg_snow_1h": [snow_1h],
+                    "avg_temp_max": [max_temperature],
+                    "dt_iso": [0],
+                    "count_incidents": [0],
+                    "weather_main_priority": [0]
                 }
             )
 
@@ -131,30 +139,66 @@ MODEL = load_model()
 GEOGRAPHY = full_geography()
 GEOGRAPHY = GEOGRAPHY.merge(BUILDINGS, on="grid_id", how="left")
 
+def real_life_weather():
+    st.title("Real Life Weather")
+
+    # Create a form with only the submit button in the sidebar
+    with st.sidebar.form("Weather Information"):
+        # Submit button
+        submitted = st.form_submit_button("Submit")
+
+        # Process the form data if the submit button is clicked
+        if submitted:
+            # Do something when the form is submitted
+            st.write("Form submitted!")
+
+    # Additional content for the "Real Life Weather" page
+    st.write("Add your content for Real Life Weather here.")
+
+def explanation():
+    st.title("Explanation")
+    st.write("Add your content for Explanation here.")
 
 def main():
     if check_password():
         sns.set_theme()
         DATA = None
 
-        # Main content area
-        st.title("Storm Incidents Prediction")
+        # Sidebar navigation
+        page = st.sidebar.selectbox("Select a page", ["Prediction Map", "Real Life Weather", "Explanation"])
 
-        # Weather input in the left control panel
-        with st.sidebar:
-            st.header("Weather Information")
-            weather_info = weather_input()
+        if page == "Prediction Map":
+            # Weather input in the left control panel
+            with st.sidebar:
+                st.header("Weather Information")
+                weather_info = weather_input()
 
-        # Display map if weather_info is available
-        if isinstance(weather_info, pd.DataFrame):
-            DATA = GRID.merge(weather_info, how='cross')
-            predictions = MODEL.predict(DATA)
-            DATA.loc[:, "predictions"] = predictions
-            DATA = GEOGRAPHY.merge(DATA, on="grid_id")
+            # Display map if weather_info is available
+            if isinstance(weather_info, pd.DataFrame):
+                DATA = GRID.merge(weather_info, how='cross')
+                predictions = MODEL.predict(DATA)
+                DATA.loc[:, "predictions"] = predictions
+                DATA = GEOGRAPHY.merge(DATA, on="grid_id")
 
-            if isinstance(DATA, pd.DataFrame):
-                amsterdam_map = create_amsterdam_map(DATA[["geometry", "count", "count_vnl_locs", "avg_year", "predictions", 'grid_id']])
-                st.markdown(folium_static(amsterdam_map, width=1000, height=800), unsafe_allow_html=True)
+                if isinstance(DATA, pd.DataFrame):
+                    # Title for the Prediction Map page
+                    st.title("Storm Incidents Prediction")
+
+                    amsterdam_map = create_amsterdam_map(
+                        DATA[
+                            ["geometry",
+                             "count_building_year",
+                             "count_vnl_locs",
+                             "avg_building_year",
+                             "predictions",
+                             'grid_id']
+                        ]
+                    )
+                    st.markdown(folium_static(amsterdam_map, width=1000, height=800), unsafe_allow_html=True)
+        elif page == "Real Life Weather":
+            real_life_weather()
+        elif page == "Explanation":
+            explanation()
 
 if __name__ == '__main__':
     main()
