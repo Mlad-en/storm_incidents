@@ -232,3 +232,43 @@ class GridBuildingsVunerableLocations(models.Model):
     count = models.BigIntegerField()
     avg_year = models.IntegerField()
     count_vnl_locs = models.BigIntegerField()
+
+
+class DailyWeatherView(models.Model):
+
+    class Meta:
+        db_table = "daily_weather"
+        managed = False
+
+    dt_iso = models.DateField()
+    avg_temp = models.FloatField()
+    avg_temp_min = models.FloatField()
+    avg_temp_max = models.FloatField()
+    avg_wind_deg = models.FloatField()
+    avg_wind_gust = models.FloatField()
+    avg_wind_speed = models.FloatField()
+    avg_snow_1h = models.FloatField()
+    avg_rain_1h = models.FloatField()
+    weather_main_priority = models.IntegerField()
+    weather_main = models.CharField(max_length=150)
+
+
+class DailyWeatherWithIncidentsView(models.Model):
+
+    class Meta:
+        db_table = "daily_weather_with_incidents"
+        managed = False
+
+    dt_iso = models.DateField()
+    avg_temp = models.FloatField()
+    avg_temp_min = models.FloatField()
+    avg_temp_max = models.FloatField()
+    avg_wind_deg = models.FloatField()
+    avg_wind_gust = models.FloatField()
+    avg_wind_speed = models.FloatField()
+    avg_snow_1h = models.FloatField()
+    avg_rain_1h = models.FloatField()
+    weather_main_priority = models.IntegerField()
+    weather_main = models.CharField(max_length=150)
+    count_incidents = models.BigIntegerField()
+    has_incident = models.BooleanField()
