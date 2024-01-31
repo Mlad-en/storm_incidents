@@ -271,4 +271,4 @@ class DailyWeatherWithIncidentsView(models.Model):
     weather_main_priority = models.IntegerField()
     weather_main = models.CharField(max_length=150)
     count_incidents = models.BigIntegerField()
-    has_incidents = models.BooleanField()
+    has_incident = models.BooleanField()

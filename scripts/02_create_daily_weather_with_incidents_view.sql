@@ -12,7 +12,7 @@ dw.avg_rain_1h,
 dw.weather_main_priority,
 dw.weather_main,
 sum(coalesce(ctipgd.count_incidents, 0)) over (partition by dw.dt_iso) as count_incidents,
-sum(coalesce(ctipgd.count_incidents, 0)) over (partition by dw.dt_iso) > 0 as has_incidents
+sum(coalesce(ctipgd.count_incidents, 0)) over (partition by dw.dt_iso) > 0 as has_incident
 from daily_weather dw
 left join count_tree_incidents_per_grid_date ctipgd
 on dw.dt_iso = ctipgd.date;
