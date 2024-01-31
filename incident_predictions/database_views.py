@@ -229,8 +229,8 @@ class GridBuildingsVunerableLocations(models.Model):
         managed = False
 
     grid_id = models.CharField(max_length=255, primary_key=True)
-    count = models.BigIntegerField()
-    avg_year = models.IntegerField()
+    count_building_year = models.BigIntegerField()
+    avg_building_year = models.IntegerField()
     count_vnl_locs = models.BigIntegerField()
 
 

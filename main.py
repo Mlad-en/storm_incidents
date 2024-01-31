@@ -77,11 +77,11 @@ def load_model():
 
 def create_amsterdam_map(amsterdam_gdf):
     amsterdam_map = folium.Map(location=[52.3676, 4.9041], zoom_start=12)
-    cast_types = ["count", "count_vnl_locs", "avg_year", "predictions"]
+    cast_types = ["count_building_year", "count_vnl_locs", "avg_building_year", "predictions"]
     amsterdam_gdf[cast_types] = amsterdam_gdf[cast_types].fillna(0).astype(int)
     folium.GeoJson(
         amsterdam_gdf,
-        tooltip=folium.features.GeoJsonTooltip(fields=['grid_id', 'avg_year', 'predictions'], labels=True, sticky=True)
+        tooltip=folium.features.GeoJsonTooltip(fields=['grid_id', 'avg_building_year', 'predictions'], labels=True, sticky=True)
     ).add_to(amsterdam_map)
 
     return amsterdam_map
@@ -94,6 +94,7 @@ def weather_input():
             ("Clear", "Thunderstorm", "Fog", "Smoke", "Snow", "Rain", "Mist", "Drizzle", "Clouds"))
         temperature = st.slider('What is the temperature?', -30, 50, 1)
         min_temperature = st.slider('What is the minimum temperature?', -30, 50, 1)
+        max_temperature = st.slider('What is the maximum temperature?', -30, 50, 1)
         wind_speed = st.slider('What is the wind speed?', 0, 200, 1)
         wind_degree = st.slider('What is the wind degree?', 0, 360, 1)
         wind_gust = st.slider('What is the wind gust?', 0, 200, 1)
@@ -105,19 +106,17 @@ def weather_input():
             return pd.DataFrame(
                 {
                     "weather_main": [weather_main],
-                    "temp": [temperature],
-                    "temp_min": [min_temperature],
-                    "wind_speed": [wind_speed],
-                    "wind_deg": [wind_degree],
-                    "wind_gust": [wind_gust],
-                    "rain_1h": [rain_1h],
-                    "snow_1h": [snow_1h],
-                    "rain_3h": [0],
-                    "dew_point": [0],
-                    "humidity": [0],
-                    "feels_like": [0],
-                    "pressure": [0],
-                    "temp_max": [0],
+                    "avg_temp": [temperature],
+                    "avg_temp_min": [min_temperature],
+                    "avg_wind_speed": [wind_speed],
+                    "avg_wind_deg": [wind_degree],
+                    "avg_wind_gust": [wind_gust],
+                    "avg_rain_1h": [rain_1h],
+                    "avg_snow_1h": [snow_1h],
+                    "avg_temp_max": [max_temperature],
+                    "dt_iso": [0],
+                    "count_incidents": [0],
+                    "weather_main_priority": [0]
                 }
             )
 
@@ -153,8 +152,18 @@ def main():
             DATA = GEOGRAPHY.merge(DATA, on="grid_id")
 
             if isinstance(DATA, pd.DataFrame):
-                amsterdam_map = create_amsterdam_map(DATA[["geometry", "count", "count_vnl_locs", "avg_year", "predictions", 'grid_id']])
+                amsterdam_map = create_amsterdam_map(
+                    DATA[
+                        ["geometry",
+                         "count_building_year",
+                         "count_vnl_locs",
+                         "avg_building_year",
+                         "predictions",
+                         'grid_id']
+                    ]
+                )
                 st.markdown(folium_static(amsterdam_map, width=1000, height=800), unsafe_allow_html=True)
+
 
 if __name__ == '__main__':
     main()
