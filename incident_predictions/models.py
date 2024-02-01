@@ -214,3 +214,15 @@ class ServiceAreas(models.Model):
     location = models.CharField(max_length=255)
     municipality = models.CharField(max_length=50)
     geometry = models.PointField()
+
+
+class ServiceAreasDataModel(models.Model):
+    class Meta:
+        db_table = "service_areas_data"
+        verbose_name = "service Areas data"
+        verbose_name_plural = "service Area data"
+
+    service_area_id = models.IntegerField()
+    service_area_name = models.CharField(max_length=50)
+    geom = models.CharField()
+    geometry = models.GeometryField()

@@ -18,6 +18,7 @@ from utils.buildings import SourceHistoricBuilding, BuildingsValidationModel
 from utils.vunerable_locations import SourceVunerableLocations, LocationsValidationModel
 from utils.weather_api_model import GetWeatherDataModel
 from utils.weather_data import SourceWeatherData, WeatherDataValidationModel
+from utils.service_areas import ServiceAreasModel, ServiceAreas
 import logging
 
 logger = logging.getLogger(__name__)
@@ -110,6 +111,18 @@ def load_weather_data(request):
         load_data_into_db(data, WeatherDataValidationModel, models.WeatherDataModel, logger)
 
         return HttpResponse("Success")
+
+
+def load_service_area_data(request):
+
+    if request.method == 'GET':
+        logger.info("Method Started")
+        data = ServiceAreas().clean_data().dataframe
+        logger.info("Data Loaded")
+        models.ServiceAreasDataModel.objects.all().delete()
+        load_data_into_db(data, ServiceAreasModel, models.ServiceAreasDataModel, logger)
+
+        return HttpResponse('Success')
 
 
 def login_view(request):
