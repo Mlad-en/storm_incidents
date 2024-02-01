@@ -14,6 +14,7 @@ from django.core.wsgi import get_wsgi_application
 from django.contrib.auth import authenticate
 from incident_predictions import database_views, models
 from shapely import wkt
+from folium import plugins
 
 application = get_wsgi_application()
 
@@ -61,7 +62,8 @@ def service_area_data_loading():
     areas = models.ServiceAreasDataModel.objects.all().values()
     df = pd.DataFrame(list(areas))
     wkt = df.geometry.apply(lambda x: x.wkt)
-    df = gpd.GeoDataFrame(df, crs=4326, geometry=gpd.GeoSeries.from_wkt(wkt))
+    df = gpd.GeoDataFrame(df, crs="EPSG:28992", geometry=gpd.GeoSeries.from_wkt(wkt))
+    df['geometry'] = df['geometry'].to_crs("EPSG:4326")
     return df
 
 
@@ -160,13 +162,19 @@ def create_amsterdam_map(amsterdam_gdf, service_areas):
         color = "red" if prediction == 1 else "none"
         return {"fillColor": color, "color": "black", "weight": 1, "fillOpacity": fill_opacity}
 
-    folium.GeoJson(
+    child1 = folium.GeoJson(
         amsterdam_gdf,
         style_function=style_function,
         tooltip=folium.features.GeoJsonTooltip(fields=['grid_id', 'avg_building_year', 'count_vnl_locs', 'predictions'], labels=True, sticky=True)
-    ).add_to(amsterdam_map)
+    )#.add_to(amsterdam_map)
+    child1.layer_name = '100x100 grid'
 
-    folium.GeoJson(service_areas["geometry"]).add_to(amsterdam_map)
+    child2 = folium.GeoJson(service_areas["geometry"])#.add_to(amsterdam_map)
+    child2.layer_name = 'Service Areas'
+    amsterdam_map.add_children(child1)
+    amsterdam_map.add_children(child2)
+    # add the layer control
+    folium.LayerControl().add_to(amsterdam_map)
 
 
 
@@ -201,14 +209,14 @@ def weather_input():
         weather_main = st.selectbox(
             'What is the weather description?',
             ("Clear", "Thunderstorm", "Fog", "Smoke", "Snow", "Rain", "Mist", "Drizzle", "Clouds"))
-        wind_speed = st.slider('What is the wind speed?', 0, 200, 1)
-        wind_degree = st.slider('What is the wind degree?', 0, 360, 1)
-        wind_gust = st.slider('What is the wind gust?', 0, 200, 1)
-        rain_1h = st.slider('How much has it rained in the last hour?', 0, 200, 1)
-        snow_1h = st.slider('How much has it snowed in the last hour?', 0, 200, 1)
-        temperature = st.slider('What is the temperature?', -30, 50, 1)
-        min_temperature = st.slider('What is the minimum temperature?', -30, 50, 1)
-        max_temperature = st.slider('What is the maximum temperature?', -30, 50, 1)
+        wind_speed = st.slider('What is the wind speed? (m/s)', 0, 35, 1)
+        wind_degree = st.slider('What is the wind degree? (°)', 0, 360, 1)
+        wind_gust = st.slider('What is the wind gust? (m/s)', 0, 35, 1)
+        rain_1h = st.slider('How much has it rained in the last hour? (mm)', 0, 150, 1)
+        snow_1h = st.slider('How much has it snowed in the last hour? (mm, liquid state)', 0, 150, 1)
+        temperature = st.slider('What is the temperature? (°C)', -30, 50, 1)
+        min_temperature = st.slider('What is the minimum temperature? (°C)', -30, 50, 1)
+        max_temperature = st.slider('What is the maximum temperature? (°C)', -30, 50, 1)
 
         submitted = st.form_submit_button("Submit")
         if submitted:
