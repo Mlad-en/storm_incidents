@@ -89,11 +89,33 @@ def create_amsterdam_map(amsterdam_gdf):
     folium.GeoJson(
         amsterdam_gdf,
         style_function=style_function,
-        tooltip=folium.features.GeoJsonTooltip(fields=['grid_id', 'avg_building_year', 'predictions'], labels=True, sticky=True)
+        tooltip=folium.features.GeoJsonTooltip(fields=['grid_id', 'avg_building_year', 'count_vnl_locs', 'predictions'], labels=True, sticky=True)
     ).add_to(amsterdam_map)
 
-    return amsterdam_map
+    
 
+    # Add additional points
+    additional_points = [
+        [52.26295130210547, 4.76305970952781, 'Amsterdam-Amstelland Aalsmeer'],
+        [52.358154952608366, 4.886063171988078, 'Amsterdam-Amstelland Dirk'],
+        [52.37269177618045, 4.875679454794675, 'Amsterdam-Amstelland Hendrik'],
+        [52.34889626306957, 4.9148519547932885, 'Amsterdam-Amstelland Willem'],
+        [52.360585512082764, 4.929142910614777, 'Amsterdam-Amstelland Victor'],
+        [52.370941181170124, 4.909433861091186, 'Amsterdam-Amstelland Nico'],
+        [52.38489337929629, 4.863331900539332, 'Amsterdam-Amstelland Teunis'],
+        [52.351081357219186, 4.84407584473503, 'Amsterdam-Amstelland Pieter'],
+        [52.39745429734238, 4.953814914725336, 'Amsterdam-Amstelland Zebra'],
+        [52.34355683224436, 4.965759303211002, 'Amsterdam-Amstelland Diemen'],
+        [52.33466256068652, 4.939071060188342, 'Amsterdam-Amstelland Duivendrecht'],
+        [52.41130841654537, 4.888752495088714, 'Amsterdam-Amstelland IJsbrand'],
+        [52.31057376849848, 4.973208734677997, 'Amsterdam-Amstelland Anton'],
+        [52.36983355801502, 4.8016570022515594, 'Amsterdam-Amstelland Osdorp']
+    ]
+
+    for point in additional_points:
+        folium.Marker(location=[point[0], point[1]], popup=point[2], icon=folium.Icon(color='green')).add_to(amsterdam_map)
+
+    return amsterdam_map
 
 
 def weather_input():
@@ -101,14 +123,14 @@ def weather_input():
         weather_main = st.selectbox(
             'What is the weather description?',
             ("Clear", "Thunderstorm", "Fog", "Smoke", "Snow", "Rain", "Mist", "Drizzle", "Clouds"))
-        temperature = st.slider('What is the temperature?', -30, 50, 1)
-        min_temperature = st.slider('What is the minimum temperature?', -30, 50, 1)
-        max_temperature = st.slider('What is the maximum temperature?', -30, 50, 1)
         wind_speed = st.slider('What is the wind speed?', 0, 200, 1)
         wind_degree = st.slider('What is the wind degree?', 0, 360, 1)
         wind_gust = st.slider('What is the wind gust?', 0, 200, 1)
         rain_1h = st.slider('How much has it rained in the last hour?', 0, 200, 1)
         snow_1h = st.slider('How much has it snowed in the last hour?', 0, 200, 1)
+        temperature = st.slider('What is the temperature?', -30, 50, 1)
+        min_temperature = st.slider('What is the minimum temperature?', -30, 50, 1)
+        max_temperature = st.slider('What is the maximum temperature?', -30, 50, 1)
 
         submitted = st.form_submit_button("Submit")
         if submitted:
@@ -156,7 +178,7 @@ def real_life_weather():
     st.write("Add your content for Real Life Weather here.")
 
 def explanation():
-    st.title("Explanation")
+    st.title("XAI")
     st.write("Add your content for Explanation here.")
 
 def main():
@@ -165,7 +187,7 @@ def main():
         DATA = None
 
         # Sidebar navigation
-        page = st.sidebar.selectbox("Select a page", ["Prediction Map", "Real Life Weather", "Explanation"])
+        page = st.sidebar.selectbox("Select a page", ["Prediction Map", "Real Life Weather", "XAI"])
 
         if page == "Prediction Map":
             # Weather input in the left control panel
