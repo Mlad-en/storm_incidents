@@ -13,7 +13,7 @@ import streamlit as st
 from django.core.wsgi import get_wsgi_application
 from django.contrib.auth import authenticate
 from incident_predictions import database_views, models
-
+from shapely import wkt
 
 application = get_wsgi_application()
 
@@ -59,10 +59,10 @@ def full_geography():
 @st.cache_data
 def service_area_data_loading():
     areas = models.ServiceAreasDataModel.objects.all().values()
-    dataframe = pd.DataFrame(list(areas))
-    dataframe = gpd.GeoDataFrame(dataframe, geometry=dataframe['geometry'].apply(wkt.loads), crs="EPSG:28992")
-    dataframe['geometry'] = dataframe['geometry'].to_crs("EPSG:4326")
-    return dataframe
+    df = pd.DataFrame(list(areas))
+    wkt = df.geometry.apply(lambda x: x.wkt)
+    df = gpd.GeoDataFrame(df, crs=4326, geometry=gpd.GeoSeries.from_wkt(wkt))
+    return df
 
 
 @st.cache_data
@@ -235,8 +235,9 @@ def weather_input():
 
 GRID = load_grid_data()
 BUILDINGS = load_buildings()
-MODEL = load_model()
 SERVICE_AREAS = service_area_data_loading()
+MODEL = load_model()
+
 TREE_HEIGHT = load_tree_height()
 GEOGRAPHY = full_geography()
 BUILDINGS_PCT = load_building_pct()
