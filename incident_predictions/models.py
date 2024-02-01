@@ -219,7 +219,7 @@ class ServiceAreas(models.Model):
 class ServiceAreasDataModel(models.Model):
     class Meta:
         db_table = "service_areas_data"
-        verbose_name = "service Areas data"
+        verbose_name = "service areas data"
         verbose_name_plural = "service Area data"
 
     service_area_id = models.IntegerField()

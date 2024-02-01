@@ -37,7 +37,7 @@ class ServiceAreasEnglishColumns:
             ServiceAreasOriginalColumns.geomtext: cls.geometry,
         }
 
-class ServiceAreas:
+class ServiceAreas2:
 
     def __init__(self):
         files_dir = Path(__file__).resolve().parents[1] / "files/Verzorgingsgebieden_VrAA.csv"

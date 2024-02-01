@@ -74,6 +74,72 @@ def load_model():
     filtered_models = models.PredictiveModels.objects.first()
     return joblib.load(filtered_models.file.path)
 
+@st.cache_data
+def load_tree_height():
+    tree_height = database_views.CountTreeHeightView.objects.all().values()
+    return pd.DataFrame(list(tree_height))
+
+@st.cache_data
+def load_building_pct():
+    building_pct = database_views.building_pct_view.objects.all().values()
+    return pd.DataFrame(list(building_pct))
+
+def create_risk_dataframe(trees, vn_buildings, building_pct_grid):
+    # pre-processing vulnarable locs
+    vuls = vn_buildings[['grid_id','count_vnl_locs']].set_index('grid_id')
+    # pre-processing trees
+    tree_data = pd.DataFrame()
+    x = 0
+
+    for column in trees.columns:
+    
+        if x >= 1 and x<= 7:
+            if str(column)[-2:-1] == '_':
+                number = int(str(column)[-1:])
+            else:
+                number = int(str(column)[-2:])
+        
+            tree_data[number] = trees[column] * number
+
+        if x == 0:
+            tree_data[column] = trees[column]
+
+        x+=1
+    mean_hight_grid = tree_data.set_index('grid_id').transpose().sum() / trees[["grid_id", "count_up_to_6","count_6_to_9", "count_9_to_12", "count_12_to_15", "count_15_to_18", "count_18_to_24", "count_over_24"]].set_index('grid_id').transpose().sum()
+    trees_mean = pd.DataFrame(mean_hight_grid)
+    newest = pd.DataFrame()
+    newest['grid_id'] = mean_hight_grid.index
+    newest['means'] = np.where(np.isnan(trees_mean), np.nanmean(trees_mean[0]), trees_mean)
+
+    # Binning Functions
+    def get_percentiles(distribution, percentages):
+        threshold = dict()
+        for x in percentages:
+                threshold[x] = np.percentile(distribution, x)
+        return threshold
+
+    def define_bins(distribution, thresholds, column_name):
+        binned = pd.DataFrame()
+        for x in range(len(thresholds)):
+            temp = pd.DataFrame()
+            if x == 0:
+                temp[column_name] = distribution[distribution <= thresholds[list(thresholds.keys())[x]]]
+            else:
+                temp[column_name] = distribution[(distribution <= thresholds[list(thresholds.keys())[x]]) & (distribution > thresholds[list(thresholds.keys())[x-1]])]
+            temp[column_name] = np.where(temp[column_name] <= thresholds[list(thresholds.keys())[x]], x+1, temp[column_name])
+            binned = pd.concat([binned, temp])
+        return binned
+
+    # Setting up final dataframe
+    df1 = define_bins(building_pct_grid['sum_area_building'], get_percentiles(building_pct_grid['sum_area_building'], [20,40,60,80,100]), "building_percentages")
+    df2 = define_bins(newest.set_index('grid_id')['means'], get_percentiles(newest.set_index('grid_id')['means'], [20,40,60,80,100]), "tree_height")
+    df3 = define_bins(vuls['count_vnl_locs'], get_percentiles(vuls, [94.25,95,99.5,99.8,100]), "vulnarable_buildings")
+
+    final = df1.merge(df3, left_index=True, right_index=True)
+    final = final.merge(df2,left_index=True, right_index=True)
+
+    return final
+
 
 def create_amsterdam_map(amsterdam_gdf):
     amsterdam_map = folium.Map(location=[52.3676, 4.9041], zoom_start=12)
@@ -158,7 +224,9 @@ def weather_input():
 GRID = load_grid_data()
 BUILDINGS = load_buildings()
 MODEL = load_model()
+TREE_HEIGHT = load_tree_height()
 GEOGRAPHY = full_geography()
+BUILDINGS_PCT = load_building_pct()
 GEOGRAPHY = GEOGRAPHY.merge(BUILDINGS, on="grid_id", how="left")
 
 def real_life_weather():

@@ -33,6 +33,15 @@ class CountTreeHeightView(models.Model):
     count_over_24 = models.BigIntegerField()
     count_unknown = models.BigIntegerField()
 
+class building_pct_view(models.Model):
+
+    class Meta:
+        db_table = "building_pct_view"
+        managed = False
+
+    grid_id = models.CharField(max_length=255, primary_key=True)
+    sum_area_building = models.BigIntegerField()
+
 
 class SoilPercentageOverlapView(models.Model):
 

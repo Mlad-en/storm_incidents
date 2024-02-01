@@ -18,7 +18,7 @@ def load_data_into_db(data, validation_model, django_model, logger):
 def get_connection():
     load_dotenv()
     connection = psycopg2.connect(
-        user=os.getenv("POSTGRES_USER"),
+        user="postgres",
         password=os.getenv("DB_PASSWORD"),
         host=os.getenv("DB_HOST_NAME"),
         port=os.getenv("DB_PORT"),
