@@ -56,6 +56,14 @@ def full_geography():
     df = gpd.GeoDataFrame(df, crs=4326, geometry=gpd.GeoSeries.from_wkt(wkt))
     return df
 
+@st.cache_data
+def service_area_data_loading():
+    areas = models.ServiceAreasDataModel.objects.all().values()
+    dataframe = pd.DataFrame(list(areas))
+    dataframe = gpd.GeoDataFrame(dataframe, geometry=dataframe['geometry'].apply(wkt.loads), crs="EPSG:28992")
+    dataframe['geometry'] = dataframe['geometry'].to_crs("EPSG:4326")
+    return dataframe
+
 
 @st.cache_data
 def load_grid_data():
@@ -141,7 +149,7 @@ def create_risk_dataframe(trees, vn_buildings, building_pct_grid):
     return final
 
 
-def create_amsterdam_map(amsterdam_gdf):
+def create_amsterdam_map(amsterdam_gdf, service_areas):
     amsterdam_map = folium.Map(location=[52.3676, 4.9041], zoom_start=12)
     cast_types = ["count_building_year", "count_vnl_locs", "avg_building_year", "predictions"]
     amsterdam_gdf[cast_types] = amsterdam_gdf[cast_types].fillna(0).astype(int)
@@ -157,6 +165,10 @@ def create_amsterdam_map(amsterdam_gdf):
         style_function=style_function,
         tooltip=folium.features.GeoJsonTooltip(fields=['grid_id', 'avg_building_year', 'count_vnl_locs', 'predictions'], labels=True, sticky=True)
     ).add_to(amsterdam_map)
+
+    folium.GeoJson(service_areas["geometry"]).add_to(amsterdam_map)
+
+
 
     
 
@@ -224,6 +236,7 @@ def weather_input():
 GRID = load_grid_data()
 BUILDINGS = load_buildings()
 MODEL = load_model()
+SERVICE_AREAS = service_area_data_loading()
 TREE_HEIGHT = load_tree_height()
 GEOGRAPHY = full_geography()
 BUILDINGS_PCT = load_building_pct()
@@ -282,7 +295,7 @@ def main():
                              "avg_building_year",
                              "predictions",
                              'grid_id']
-                        ]
+                        ], SERVICE_AREAS
                     )
                     st.markdown(folium_static(amsterdam_map, width=1000, height=800), unsafe_allow_html=True)
         elif page == "Real Life Weather":
