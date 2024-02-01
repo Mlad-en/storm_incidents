@@ -15,6 +15,7 @@ class DatabaseTables(Enum):
     grid_environment_with_incidents = auto()
     count_tree_incidents_per_grid_date = auto()
     daily_weather_with_incidents = auto()
+    full_sampled_weather_with_incidents = auto()
 
 
 class FetchDBData:
@@ -34,6 +35,8 @@ class FetchDBData:
 
         if self.data_base_table == DatabaseTables.daily_weather_with_incidents:
             return "select * from daily_weather_with_incidents"
+        if self.data_base_table == DatabaseTables.full_sampled_weather_with_incidents:
+            return "select * from full_sampled_weather_with_incidents"
 
         raise NotImplementedError()
 
@@ -148,13 +151,13 @@ def undersample_grid_data(under_sampler: NearMiss | RandomUnderSampler | TomekLi
     return df, strat
 
 
-def undersample_daily_weather_data(under_sampler: NearMiss | RandomUnderSampler | TomekLinks):
-    data = FetchDBData(DatabaseTables.daily_weather_with_incidents).get_database_data()
+def undersample_daily_weather_data(under_sampler: NearMiss | RandomUnderSampler | TomekLinks, database: DatabaseTables):
+    data = FetchDBData(database).get_database_data()
     variables, has_incident = split_data(data, stratification_column="has_incident")
     transformers = get_column_transformers(ordinal_columns=["dt_iso"], one_hot_columns=["weather_main"])
     variables_transformed = transformers.fit_transform(variables)
     variables_resampled, strat = under_sampler.fit_resample(variables_transformed, has_incident)
-    print("Ratio of Daily Weather:")
+    print("Ratio Weather:")
     print(strat.value_counts())
     dataframe = inverse_transform_columns_to_df(
         transformers,
