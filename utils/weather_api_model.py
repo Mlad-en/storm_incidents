@@ -117,7 +117,7 @@ class GetWeatherDataModel(BaseModel):
 
         if self.status ==  "ok":
             initial_values = {
-                'weather_main': self.model.list[0].weather[0].main,
+                # 'weather_main': self.model.list[0].weather[0].main,
                 'rain_1h': self.model.list[0].rain.last3_hours,
                 'rain_3h': self.model.list[0].rain.last3_hours,
                 'snow_1h': self.model.list[0].snow.last3_hours,
@@ -132,7 +132,7 @@ class GetWeatherDataModel(BaseModel):
 
         else:
             initial_values = {
-                'weather_main': "Clear",
+                # 'weather_main': "Clear",
                 'rain_1h': 0,
                 'rain_3h': 0,
                 'snow_1h': 0,
