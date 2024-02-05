@@ -166,7 +166,7 @@ def create_risk_dataframe(trees, vn_buildings, building_pct_grid):
 
 def create_amsterdam_map(amsterdam_gdf, service_areas):
     amsterdam_map = folium.Map(location=[52.3676, 4.9041], zoom_start=12)
-    cast_types = ["count_building_year", "count_vnl_locs", "avg_building_year", "predictions"]
+    cast_types = ["count_vnl_locs", "avg_building_year", "predictions"]
     amsterdam_gdf[cast_types] = amsterdam_gdf[cast_types].fillna(0).astype(int)
 
     def style_function(feature):
@@ -178,15 +178,16 @@ def create_amsterdam_map(amsterdam_gdf, service_areas):
     child1 = folium.GeoJson(
         amsterdam_gdf,
         style_function=style_function,
-        tooltip=folium.features.GeoJsonTooltip(fields=['grid_id', 'avg_building_year', 'count_vnl_locs', 'predictions'],
+        tooltip=folium.features.GeoJsonTooltip(fields=
+        ['grid_id', 'avg_building_year', 'count_vnl_locs', 'predictions', 'risk'],
                                                labels=True, sticky=True)
     )
     child1.layer_name = '100x100 grid'
 
     child2 = folium.GeoJson(service_areas["geometry"])
     child2.layer_name = 'Service Areas'
-    amsterdam_map.add_children(child1)
     amsterdam_map.add_children(child2)
+    amsterdam_map.add_children(child1)
     folium.LayerControl().add_to(amsterdam_map)
 
     additional_points = [
@@ -258,23 +259,16 @@ GEOGRAPHY = GEOGRAPHY.merge(BUILDINGS, on="grid_id", how="left")
 
 
 def real_life_weather(data, include_cols):
-    st.title("Real Life Weather")
-
-    predictions = MODEL.predict(data[include_cols])
-    data.loc[:, "predictions"] = predictions
-    data = GEOGRAPHY.merge(data, on="grid_id")
-
-    if isinstance(data, pd.DataFrame):
-        st.title("Storm Incidents Prediction")
 
         amsterdam_map = create_amsterdam_map(
             data[
                 ["geometry",
-                 "count_building_year",
                  "count_vnl_locs",
                  "avg_building_year",
                  "predictions",
-                 'grid_id']
+                 'grid_id',
+                 "risk"
+                 ]
             ], SERVICE_AREAS
         )
         st.markdown(folium_static(amsterdam_map, width=1000, height=800), unsafe_allow_html=True)
@@ -304,6 +298,68 @@ def explanation():
     st.pyplot(fig)
 
 
+def set_side_bar_options():
+    if st.session_state.get('is_staff'):
+        side_bar = ["Prediction Map", "Real Life Weather", "XAI"]
+    else:
+        side_bar = ["Real Life Weather", "Prediction Map"]
+
+    return side_bar
+
+
+def building_risk(value):
+
+    if value < 8.2:
+        return 1
+    elif value < 33.9:
+        return 2
+    elif value < 51.9:
+        return 3
+    elif value < 68.3:
+        return 4
+    else:
+        return 5
+
+
+def vunerable_locations_risk(value):
+
+    if value == 0:
+        return 1
+    elif value == 1:
+        return 2
+    elif value == 2:
+        return 3
+    elif value == 3:
+        return 4
+    else:
+        return 5
+
+
+def calculate_risk(dataframe):
+    buildings_risk = dataframe["sum_area_building"].apply(building_risk)
+    vunerable_locations = dataframe["count_vnl_locs"].apply(vunerable_locations_risk)
+    predictions = dataframe["predictions"]
+    risk = np.round(np.mean([buildings_risk, vunerable_locations], axis=0), 0)
+    dataframe.loc[:, "risk"] = predictions * risk
+    return dataframe
+
+
+def combine_dataframes(weather_info):
+    data = GRID.merge(weather_info, how='cross')
+    exclude_cols = ["grid_id", "weather_main", "dt_iso", "count_incidents", "has_incident", "rain_3h"]
+    include_cols = [col for col in data.columns if col not in exclude_cols]
+    cast_cols = ['mean_tree_age', 'std_tree_age']
+    data[cast_cols] = data[cast_cols].astype(float)
+
+    return data, include_cols
+
+
+def add_predictions(data, model, include_cols, decision_boundary):
+    predictions = MODEL.predict(data[include_cols], num_iteration=MODEL.best_iteration)
+    data.loc[:, "predictions"] = np.where(predictions < decision_boundary, 0, 1)
+    return data
+
+
 def main():
 
     user = check_password()
@@ -312,12 +368,7 @@ def main():
         sns.set_theme()
         DATA = None
 
-        if st.session_state.get('is_staff'):
-            side_bar = ["Prediction Map", "Real Life Weather", "XAI"]
-        else:
-            side_bar = ["Real Life Weather", "Prediction Map"]
-
-        page = st.sidebar.selectbox("Select a page", side_bar)
+        page = st.sidebar.selectbox("Select a page", set_side_bar_options())
 
         if page == "Prediction Map":
             with st.sidebar:
@@ -325,16 +376,12 @@ def main():
                 weather_info = weather_input()
 
             if isinstance(weather_info, pd.DataFrame):
-                prediction_boundary = 0.9
-                DATA = GRID.merge(weather_info, how='cross')
-                exclude_cols = ["grid_id", "weather_main", "dt_iso", "count_incidents", "has_incident"]
-                include_cols = [col for col in DATA.columns if col not in exclude_cols]
-                cast_cols = ['mean_tree_age', 'std_tree_age']
-                DATA[cast_cols] = DATA[cast_cols].astype(float)
 
-                predictions = MODEL.predict(DATA[include_cols])
-                DATA.loc[:, "predictions"] = np.where(predictions < prediction_boundary, 0, 1)
+                DATA, include_cols = combine_dataframes(weather_info)
+                DATA = add_predictions(DATA, MODEL, include_cols, decision_boundary=0.9)
                 DATA = GEOGRAPHY.merge(DATA, on="grid_id")
+                DATA = DATA.merge(BUILDINGS_PCT, on="grid_id", how='left')
+                DATA = calculate_risk(DATA)
 
                 if isinstance(DATA, pd.DataFrame):
                     st.title("Storm Incidents Prediction")
@@ -346,22 +393,39 @@ def main():
                              "count_vnl_locs",
                              "avg_building_year",
                              "predictions",
-                             'grid_id']
+                             'grid_id',
+                             'risk'
+                             ]
                         ], SERVICE_AREAS
                     )
                     st.markdown(folium_static(amsterdam_map, width=1000, height=800), unsafe_allow_html=True)
+
 
         elif page == "Real Life Weather":
             get_data = GetWeatherDataModel().fetch_current_weather_data()
             if get_data.status == 'ok':
                 weather_info = pd.DataFrame([get_data.get_initial_values()])
-                DATA = GRID.merge(weather_info, how='cross')
-
-                exclude_cols = ["grid_id", "weather_main", "dt_iso", "count_incidents", "has_incident", "rain_3h"]
-                include_cols = [col for col in DATA.columns if col not in exclude_cols]
-                cast_cols = ['mean_tree_age', 'std_tree_age']
-                DATA[cast_cols] = DATA[cast_cols].astype(float)
-                real_life_weather(DATA, include_cols)
+                DATA, include_cols = combine_dataframes(weather_info)
+                DATA = add_predictions(DATA, MODEL, include_cols, decision_boundary=0.9)
+                DATA = GEOGRAPHY.merge(DATA, on="grid_id")
+                DATA = DATA.merge(BUILDINGS_PCT, on="grid_id", how='left')
+                DATA = calculate_risk(DATA)
+                st.title("Real Life Weather")
+                if isinstance(DATA, pd.DataFrame):
+                    st.title("Storm Incidents Prediction")
+                amsterdam_map = create_amsterdam_map(
+                    DATA[
+                        ["geometry",
+                         "count_building_year",
+                         "count_vnl_locs",
+                         "avg_building_year",
+                         "predictions",
+                         'grid_id',
+                         'risk'
+                         ]
+                    ], SERVICE_AREAS
+                )
+                st.markdown(folium_static(amsterdam_map, width=1000, height=800), unsafe_allow_html=True)
 
             else:
                 st.write("Could Not connect to Open weather api. Please check your internet connection.")

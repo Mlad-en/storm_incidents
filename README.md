@@ -74,3 +74,8 @@ To create the necessary migrations run:
    http://127.0.0.1:8000/load_data/load_vunerable_locations
    http://127.0.0.1:8000/load_data/load_weather_data
    ```
+   
+5. To run the application, run the following command:
+   ```bash
+   pipenv run streamlit run main.py
+   ```
