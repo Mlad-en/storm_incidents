@@ -23,7 +23,6 @@ application = get_wsgi_application()
 
 
 def check_password():
-
     def password_entered():
         user = authenticate(
             username=st.session_state["username"], password=st.session_state["password"]
@@ -102,68 +101,6 @@ def load_building_pct():
     return pd.DataFrame(list(building_pct))
 
 
-def create_risk_dataframe(trees, vn_buildings, building_pct_grid):
-    vuls = vn_buildings[['grid_id', 'count_vnl_locs']].set_index('grid_id')
-    tree_data = pd.DataFrame()
-    x = 0
-
-    for column in trees.columns:
-
-        if x >= 1 and x <= 7:
-            if str(column)[-2:-1] == '_':
-                number = int(str(column)[-1:])
-            else:
-                number = int(str(column)[-2:])
-
-            tree_data[number] = trees[column] * number
-
-        if x == 0:
-            tree_data[column] = trees[column]
-
-        x += 1
-    mean_hight_grid = tree_data.set_index('grid_id').transpose().sum() / trees[
-        ["grid_id", "count_up_to_6", "count_6_to_9", "count_9_to_12", "count_12_to_15", "count_15_to_18",
-         "count_18_to_24", "count_over_24"]].set_index('grid_id').transpose().sum()
-    trees_mean = pd.DataFrame(mean_hight_grid)
-    newest = pd.DataFrame()
-    newest['grid_id'] = mean_hight_grid.index
-    newest['means'] = np.where(np.isnan(trees_mean), np.nanmean(trees_mean[0]), trees_mean)
-
-    def get_percentiles(distribution, percentages):
-        threshold = dict()
-        for x in percentages:
-            threshold[x] = np.percentile(distribution, x)
-        return threshold
-
-    def define_bins(distribution, thresholds, column_name):
-        binned = pd.DataFrame()
-        for x in range(len(thresholds)):
-            temp = pd.DataFrame()
-            if x == 0:
-                temp[column_name] = distribution[distribution <= thresholds[list(thresholds.keys())[x]]]
-            else:
-                temp[column_name] = distribution[(distribution <= thresholds[list(thresholds.keys())[x]]) & (
-                            distribution > thresholds[list(thresholds.keys())[x - 1]])]
-            temp[column_name] = np.where(temp[column_name] <= thresholds[list(thresholds.keys())[x]], x + 1,
-                                         temp[column_name])
-            binned = pd.concat([binned, temp])
-        return binned
-
-    # Setting up final dataframe
-    df1 = define_bins(building_pct_grid['sum_area_building'],
-                      get_percentiles(building_pct_grid['sum_area_building'], [20, 40, 60, 80, 100]),
-                      "building_percentages")
-    df2 = define_bins(newest.set_index('grid_id')['means'],
-                      get_percentiles(newest.set_index('grid_id')['means'], [20, 40, 60, 80, 100]), "tree_height")
-    df3 = define_bins(vuls['count_vnl_locs'], get_percentiles(vuls, [94.25, 95, 99.5, 99.8, 100]),
-                      "vulnarable_buildings")
-
-    final = df1.merge(df3, left_index=True, right_index=True)
-    final = final.merge(df2, left_index=True, right_index=True)
-
-    return final
-
-
 def create_amsterdam_map(amsterdam_gdf, service_areas):
     amsterdam_map = folium.Map(location=[52.3676, 4.9041], zoom_start=12)
     cast_types = ["count_vnl_locs", "avg_building_year", "predictions"]
@@ -171,15 +108,21 @@ def create_amsterdam_map(amsterdam_gdf, service_areas):
 
     def style_function(feature):
         prediction = feature["properties"]["predictions"]
-        fill_opacity = 0.5 if prediction == 1 else 0
-        color = "red" if prediction == 1 else "none"
+        risk = feature["properties"]["risk"]
+
+        # Define color and adjust opacity based on risk level
+        color = "red"  # Set your desired color
+        opacity = 0.1 + 0.2 * risk  # Adjust opacity based on risk level
+
+        fill_opacity = opacity if prediction == 1 else 0
         return {"fillColor": color, "color": "black", "weight": 1, "fillOpacity": fill_opacity}
 
     child1 = folium.GeoJson(
         amsterdam_gdf,
         style_function=style_function,
         tooltip=folium.features.GeoJsonTooltip(fields=
-        ['grid_id', 'avg_building_year', 'count_vnl_locs', 'predictions', 'risk'],
+                                               ['grid_id', 'avg_building_year', 'count_vnl_locs', 'predictions',
+                                                'risk'],
                                                labels=True, sticky=True)
     )
     child1.layer_name = '100x100 grid'
@@ -259,19 +202,18 @@ GEOGRAPHY = GEOGRAPHY.merge(BUILDINGS, on="grid_id", how="left")
 
 
 def real_life_weather(data, include_cols):
-
-        amsterdam_map = create_amsterdam_map(
-            data[
-                ["geometry",
-                 "count_vnl_locs",
-                 "avg_building_year",
-                 "predictions",
-                 'grid_id',
-                 "risk"
-                 ]
-            ], SERVICE_AREAS
-        )
-        st.markdown(folium_static(amsterdam_map, width=1000, height=800), unsafe_allow_html=True)
+    amsterdam_map = create_amsterdam_map(
+        data[
+            ["geometry",
+             "count_vnl_locs",
+             "avg_building_year",
+             "predictions",
+             'grid_id',
+             "risk"
+             ]
+        ], SERVICE_AREAS
+    )
+    st.markdown(folium_static(amsterdam_map, width=1000, height=800), unsafe_allow_html=True)
 
 
 def explanation():
@@ -308,7 +250,6 @@ def set_side_bar_options():
 
 
 def building_risk(value):
-
     if value < 8.2:
         return 1
     elif value < 33.9:
@@ -322,7 +263,6 @@ def building_risk(value):
 
 
 def vunerable_locations_risk(value):
-
     if value == 0:
         return 1
     elif value == 1:
@@ -361,7 +301,6 @@ def add_predictions(data, model, include_cols, decision_boundary):
 
 
 def main():
-
     user = check_password()
 
     if user:
@@ -412,7 +351,7 @@ def main():
                 DATA = calculate_risk(DATA)
                 st.title("Real Life Weather")
                 if isinstance(DATA, pd.DataFrame):
-                    st.title("Storm Incidents Prediction")
+                    st.title("")
                 amsterdam_map = create_amsterdam_map(
                     DATA[
                         ["geometry",
@@ -426,6 +365,18 @@ def main():
                     ], SERVICE_AREAS
                 )
                 st.markdown(folium_static(amsterdam_map, width=1000, height=800), unsafe_allow_html=True)
+
+                # Display weather information on the left-hand side
+                st.sidebar.subheader("Weather Information")
+                st.sidebar.write(f"Temperature: {weather_info['temp'].values[0]:.2f}°C")
+                st.sidebar.write(f"Humidity: {weather_info['humidity'].values[0]:.2f}%")
+                st.sidebar.write(f"Wind Speed: {weather_info['wind_speed'].values[0]:.2f} m/s")
+                st.sidebar.write(f"Wind Gust: {weather_info['wind_gust'].values[0]:.2f} m/s")
+                st.sidebar.write(f"Rain in the last 1 hour: {weather_info['rain_1h'].values[0]} mm")
+                st.sidebar.write(f"Snow in the last 1 hour: {weather_info['snow_1h'].values[0]} mm")
+
+
+
 
             else:
                 st.write("Could Not connect to Open weather api. Please check your internet connection.")
