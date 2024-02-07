@@ -3,6 +3,7 @@ from pathlib import Path
 from os.path import exists
 
 import pandas as pd
+import numpy as np
 from sklearn.preprocessing import OrdinalEncoder
 from sklearn.compose import make_column_transformer
 from sklearn.pipeline import Pipeline
@@ -11,7 +12,6 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error
 from sklearn.model_selection import train_test_split
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.ensemble import GradientBoostingRegressor
-from sklearn.preprocessing import FunctionTransformer
 from sklearn.compose import TransformedTargetRegressor
 import joblib
 
