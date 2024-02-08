@@ -21,7 +21,7 @@ from os import path
 def undersample_daily_weather():
     under_sampler = NearMiss(version=3, sampling_strategy=0.3)
     weather_data, has_incident = undersample_daily_weather_data(
-        under_sampler, DatabaseTables.daily_weather_with_incidents
+        under_sampler, DatabaseTables.full_sampled_weather_with_incidents
     )
     weather_data.loc[:, "has_incident"] = has_incident
 

@@ -4,6 +4,7 @@ import folium
 import matplotlib.pyplot as plt
 import numpy as np
 from streamlit_folium import folium_static
+import plotly.graph_objs as go
 
 from configurations import configure_django
 from utils.weather_api_model import GetWeatherDataModel
@@ -217,11 +218,9 @@ def real_life_weather(data, include_cols):
 
 
 def explanation():
-    st.title("XAI")
     split_importance = MODEL.feature_importance(importance_type='split')
     gain_importance = MODEL.feature_importance(importance_type='gain')
-
-    feature_names = [feature.replace("_", " ").title() for feature in MODEL.feature_name()]
+    feature_names = MODEL.feature_name()
 
     split_importance_df = pd.DataFrame({'Feature': feature_names, 'Importance': split_importance})
     split_importance_df = split_importance_df.sort_values(by='Importance', ascending=False)
@@ -229,15 +228,35 @@ def explanation():
     gain_importance_df = pd.DataFrame({'Feature': feature_names, 'Importance': gain_importance})
     gain_importance_df = gain_importance_df.sort_values(by='Importance', ascending=False)
 
-    top_n = 10
-    fig, axs = plt.subplots(2)
-    sns.barplot(x='Importance', y='Feature', data=split_importance_df.head(top_n), ax=axs[0])
-    axs[0].set_title(f'Top {top_n} Features by Split Importance')
+    st.title('Explainable AI')
 
-    sns.barplot(x='Importance', y='Feature', data=gain_importance_df.head(top_n), ax=axs[1])
-    axs[1].set_title(f'Top {top_n} Features by Gain Importance')
-    plt.subplots_adjust(hspace=1)
-    st.pyplot(fig)
+    top_n = st.slider('Select the number of top features:', min_value=1, max_value=len(feature_names), value=4)
+
+    st.subheader(f'Top {top_n} Features by Split Importance')
+    split_trace = go.Bar(
+        x=split_importance_df['Importance'].head(top_n),
+        y=split_importance_df['Feature'].head(top_n),
+        orientation='h',
+        name='Split Importance'
+    )
+    split_layout = go.Layout(
+        yaxis=dict(title='Feature')
+    )
+    split_fig = go.Figure(data=[split_trace], layout=split_layout)
+    st.plotly_chart(split_fig)
+
+    st.subheader(f'Top {top_n} Features by Gain Importance')
+    gain_trace = go.Bar(
+        x=gain_importance_df['Importance'].head(top_n),
+        y=gain_importance_df['Feature'].head(top_n),
+        orientation='h',
+        name='Gain Importance'
+    )
+    gain_layout = go.Layout(
+        yaxis=dict(title='Feature')
+    )
+    gain_fig = go.Figure(data=[gain_trace], layout=gain_layout)
+    st.plotly_chart(gain_fig)
 
 
 def set_side_bar_options():
@@ -338,7 +357,6 @@ def main():
                         ], SERVICE_AREAS
                     )
                     st.markdown(folium_static(amsterdam_map, width=1000, height=800), unsafe_allow_html=True)
-
 
         elif page == "Real Life Weather":
             get_data = GetWeatherDataModel().fetch_current_weather_data()

@@ -29,6 +29,8 @@ watchdog = "*"
 streamlit-folium = "*"
 pandas = "*"
 lightgbm = "*"
+plotly = "*"
+shap = "*"
 
 [dev-packages]
 mypy = "*"
