@@ -73,9 +73,15 @@ To create the necessary migrations run:
    http://127.0.0.1:8000/load_data/load_buildings
    http://127.0.0.1:8000/load_data/load_vunerable_locations
    http://127.0.0.1:8000/load_data/load_weather_data
+   http://127.0.0.1:8000/load_data/load_service_area_data
    ```
    
 5. To run the application, run the following command:
    ```bash
    pipenv run streamlit run main.py
+   ```
+   
+6. The command above should also be run with the following for the user to able to access the admin page:
+```bash
+   pipenv run python3 manage.py runserver
    ```
