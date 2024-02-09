@@ -1,3 +1,4 @@
+create view grid_buildings_vn_locs as
 SELECT ipag.grid_id,
        count(*)                                             AS count_building_year,
        round(avg(ipb.construction_year), 0)                 AS avg_building_year,
@@ -12,4 +13,4 @@ FROM incident_predictions_amsterdam_grid ipag
                                        ON st_contains(ipb_1.geometry, ipvl_1.geometry)
                     WHERE ipb_1.id IS NULL) vn_locs_no_building_known
                    ON st_contains(ipag.geometry, vn_locs_no_building_known.geometry)
-GROUP BY ipag.grid_id
+GROUP BY ipag.grid_id;
