@@ -242,6 +242,7 @@ def explanation():
     gain_importance = MODEL.feature_importance(importance_type='gain')
     feature_names = MODEL.feature_name()
 
+
     split_importance_df = pd.DataFrame({'Feature': feature_names, 'Importance': split_importance})
     split_importance_df = split_importance_df.sort_values(by='Importance', ascending=False)
 
@@ -252,18 +253,12 @@ def explanation():
 
     top_n = st.slider('Select the number of top features:', min_value=1, max_value=len(feature_names), value=10)
 
-    st.subheader(f'Top {top_n} Features by Split Importance')
-    split_trace = go.Bar(
-        x=split_importance_df['Importance'].head(top_n),
-        y=split_importance_df['Feature'].head(top_n),
-        orientation='h',
-        name='Split Importance'
+    st.write(
+        """Consider information gain as a measure of a feature's impact on reducing model error -
+         the higher the gain, the more significant the feature's contribution to model accuracy. 
+         Split frequency indicates how often a feature is used to divide data in the model's decision trees,
+          with higher frequencies suggesting a feature's consistent relevance across predictions."""
     )
-    split_layout = go.Layout(
-        yaxis=dict(title='Feature')
-    )
-    split_fig = go.Figure(data=[split_trace], layout=split_layout)
-    st.plotly_chart(split_fig)
 
     st.subheader(f'Top {top_n} Features by Gain Importance')
     gain_trace = go.Bar(
@@ -277,6 +272,20 @@ def explanation():
     )
     gain_fig = go.Figure(data=[gain_trace], layout=gain_layout)
     st.plotly_chart(gain_fig)
+
+    st.subheader(f'Top {top_n} Features by Split Importance')
+    split_trace = go.Bar(
+        x=split_importance_df['Importance'].head(top_n),
+        y=split_importance_df['Feature'].head(top_n),
+        orientation='h',
+        name='Split Importance'
+    )
+
+    split_layout = go.Layout(
+        yaxis=dict(title='Feature')
+    )
+    split_fig = go.Figure(data=[split_trace], layout=split_layout)
+    st.plotly_chart(split_fig)
 
 
 def set_side_bar_options():

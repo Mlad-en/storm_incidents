@@ -1,15 +1,15 @@
-create view grid_buildings_vn_locs as
-select
-distinct ipag.grid_id,
-count(ipb.construction_year) over (partition by ipag.grid_id),
-round(avg(ipb.construction_year) over (partition by ipag.grid_id), 0) as avg_year,
-count_vnl_locs
-from incident_predictions_amsterdam_grid ipag
-join incident_predictions_buildings ipb
-on ST_Intersects(ipag.geometry, ipb.geometry)
-join (select coalesce(ipb.geometry, ipvl.geometry) as geometry, count(ipvl."type") count_vnl_locs
-from incident_predictions_vunerable_locations ipvl
-left join incident_predictions_buildings ipb
-on st_contains(ipb.geometry, ipvl.geometry)
-group by coalesce(ipb.geometry, ipvl.geometry)) as count_vunerable
-on st_intersects(ipag.geometry, count_vunerable.geometry);
+SELECT ipag.grid_id,
+       count(*)                                             AS count_building_year,
+       round(avg(ipb.construction_year), 0)                 AS avg_building_year,
+       count(ipvl.id) + count(vn_locs_no_building_known.id) AS count_vnl_locs
+FROM incident_predictions_amsterdam_grid ipag
+         JOIN incident_predictions_buildings ipb ON st_intersects(ipag.geometry, ipb.geometry)
+         LEFT JOIN incident_predictions_vunerable_locations ipvl ON st_contains(ipb.geometry, ipvl.geometry)
+         LEFT JOIN (SELECT ipvl_1.id,
+                           ipvl_1.geometry
+                    FROM incident_predictions_vunerable_locations ipvl_1
+                             LEFT JOIN incident_predictions_buildings ipb_1
+                                       ON st_contains(ipb_1.geometry, ipvl_1.geometry)
+                    WHERE ipb_1.id IS NULL) vn_locs_no_building_known
+                   ON st_contains(ipag.geometry, vn_locs_no_building_known.geometry)
+GROUP BY ipag.grid_id
