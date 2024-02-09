@@ -217,7 +217,27 @@ def real_life_weather(data, include_cols):
     st.markdown(folium_static(amsterdam_map, width=1000, height=800), unsafe_allow_html=True)
 
 
+def redirect_button(url: str, text: str= None, color="#FD504D"):
+    st.markdown(
+    f"""
+    <a href="{url}" target="_self">
+        <div style="
+            display: inline-block;
+            padding: 0.5em 1em;
+            color: #FFFFFF;
+            background-color: {color};
+            border-radius: 3px;
+            text-decoration: none;">
+            {text}
+        </div>
+    </a>
+    """,
+    unsafe_allow_html=True
+    )
+
+
 def explanation():
+    redirect_button("http://127.0.0.1:8000/admin/", "Admin")
     split_importance = MODEL.feature_importance(importance_type='split')
     gain_importance = MODEL.feature_importance(importance_type='gain')
     feature_names = MODEL.feature_name()
@@ -230,7 +250,7 @@ def explanation():
 
     st.title('Explainable AI')
 
-    top_n = st.slider('Select the number of top features:', min_value=1, max_value=len(feature_names), value=4)
+    top_n = st.slider('Select the number of top features:', min_value=1, max_value=len(feature_names), value=10)
 
     st.subheader(f'Top {top_n} Features by Split Importance')
     split_trace = go.Bar(
